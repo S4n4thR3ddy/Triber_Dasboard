@@ -1,0 +1,20 @@
+{
+  "name": "Triber OBD Dashboard",
+  "short_name": "Triber OBD",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#040c18",
+  "theme_color": "#00e5ff",
+  "icons": [
+    {
+      "src": "triber.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "triber.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

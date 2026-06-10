@@ -1,0 +1,1146 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="manifest" href='data:application/json,{"name":"Triber OBD Dashboard","short_name":"Triber OBD","start_url":"./index.html","display":"standalone","background_color":"#040c18","theme_color":"#00e5ff","icons":[{"src":"triber.png","sizes":"192x192","type":"image/png"},{"src":"triber.png","sizes":"512x512","type":"image/png"}]}'>
+    <title>Triber OBD Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Roboto+Mono:wght@300;400;500&display=swap');
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#040c18;--tile:rgba(8,20,42,0.75);--border:rgba(0,191,255,0.12);
+  --border-hi:rgba(0,191,255,0.35);--cyan:#00e5ff;--cyan2:#00bfff;
+  --green:#00ff88;--orange:#ffaa00;--red:#ff3d3d;--yellow:#ffe033;
+  --blue:#2979ff;--t1:#e8f4ff;--t2:#6b8faa;
+  --fd:'Rajdhani',sans-serif;--fm:'Roboto Mono',monospace;
+  --fuel-accent:#f7b731;
+}
+html,body{height:100%;background:var(--bg);color:var(--t1);
+  font-family:var(--fd);overflow:hidden;display:flex;flex-direction:column}
+
+/* ── BG ── */
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(0,191,255,0.03) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,191,255,0.03) 1px,transparent 1px);
+  background-size:48px 48px}
+.bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(0,100,200,0.18),transparent 70%),
+  radial-gradient(ellipse 40% 30% at 20% 100%,rgba(0,180,100,0.08),transparent 60%)}
+
+/* ── TOPBAR ── */
+.topbar{position:relative;z-index:10;display:flex;align-items:center;
+  justify-content:space-between;padding:10px 20px;
+  background:rgba(4,12,24,0.92);border-bottom:1px solid var(--border);
+  flex-shrink:0;height:52px}
+.brand{display:flex;align-items:center;gap:8px}
+.brand-romb{color:var(--cyan);font-size:18px;filter:drop-shadow(0 0 6px var(--cyan))}
+.brand-name{font-size:20px;font-weight:700;letter-spacing:4px}
+.brand-sub{font-family:var(--fm);font-size:9px;color:var(--t2);letter-spacing:2px;align-self:flex-end;margin-bottom:2px}
+.conn-pill{display:flex;align-items:center;gap:8px;padding:6px 14px;
+  border-radius:20px;font-family:var(--fm);font-size:10px;
+  font-weight:500;letter-spacing:1.5px;border:1px solid;cursor:pointer;
+  transition:all 0.3s;user-select:none}
+.conn-pill.disconnected{background:rgba(255,61,61,0.08);border-color:rgba(255,61,61,0.3);color:var(--red)}
+.conn-pill.connecting{background:rgba(255,170,0,0.08);border-color:rgba(255,170,0,0.3);color:var(--orange)}
+.conn-pill.connected{background:rgba(0,255,136,0.08);border-color:rgba(0,255,136,0.35);color:var(--green)}
+.conn-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.conn-pill.connecting .conn-dot{animation:pdot 1s infinite}
+.conn-pill.connected .conn-dot{animation:pdot 3s infinite}
+@keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.7)}}
+.time-block{text-align:right}
+.time-clock{font-family:var(--fm);font-size:17px;font-weight:500;letter-spacing:2px}
+.time-date{font-family:var(--fm);font-size:9px;color:var(--t2);letter-spacing:1px}
+
+/* ── MAIN LAYOUT — 4-col grid ── */
+.dashboard{position:relative;z-index:5;display:grid;
+  grid-template-columns:1fr 1.05fr 1.35fr 1fr;
+  gap:9px;padding:9px 12px;flex:1;min-height:0;overflow:hidden}
+.col{display:flex;flex-direction:column;gap:8px}
+
+/* ── TILE BASE ── */
+.tile{background:var(--tile);border:1px solid var(--border);
+  border-radius:12px;padding:11px 13px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.04);
+  transition:border-color 0.3s}
+.tile:hover{border-color:var(--border-hi)}
+.tlabel{font-size:9px;font-weight:600;letter-spacing:2px;
+  color:var(--t2);text-transform:uppercase;margin-bottom:7px}
+.tlabel i{color:var(--cyan2);margin-right:5px}
+
+/* ── RPM TILE ── */
+.tile-rpm{display:flex;flex-direction:column}
+.val-row{display:flex;align-items:baseline;gap:5px;margin-bottom:8px}
+.val-xl{font-family:var(--fm);font-size:44px;font-weight:500;line-height:1;
+  color:var(--t1);text-shadow:0 0 20px rgba(0,229,255,0.2);transition:color .3s,text-shadow .3s}
+.val-xl.col-green{color:var(--green);text-shadow:0 0 20px rgba(0,255,136,0.3)}
+.val-xl.col-orange{color:var(--orange);text-shadow:0 0 20px rgba(255,170,0,0.3)}
+.val-xl.col-red{color:var(--red);text-shadow:0 0 20px rgba(255,61,61,0.3)}
+.val-unit{font-family:var(--fm);font-size:11px;color:var(--t2);letter-spacing:1px}
+.rpm-zones{display:flex;justify-content:space-between;margin-top:3px;
+  font-family:var(--fm);font-size:7px;color:var(--t2);letter-spacing:1px}
+
+/* ── BAR ── */
+.bar-track{width:100%;height:6px;background:rgba(0,0,0,0.5);
+  border-radius:4px;overflow:visible;position:relative;flex-shrink:0}
+.bar-fill{height:100%;border-radius:4px;width:0%;
+  transition:width .35s cubic-bezier(.4,0,.2,1),background .3s,box-shadow .3s}
+.bar-marker{position:absolute;top:-3px;width:1px;height:12px;background:rgba(255,255,255,0.12)}
+.b-blue  {background:linear-gradient(90deg,#005fa3,var(--cyan2));box-shadow:0 0 8px rgba(0,191,255,.6)}
+.b-orange{background:linear-gradient(90deg,#cc6600,var(--orange));box-shadow:0 0 8px rgba(255,170,0,.6)}
+.b-red   {background:linear-gradient(90deg,#991111,var(--red));box-shadow:0 0 8px rgba(255,61,61,.6)}
+.b-green {background:linear-gradient(90deg,#007744,var(--green));box-shadow:0 0 8px rgba(0,255,136,.6)}
+.b-yellow{background:linear-gradient(90deg,#aa7700,var(--yellow));box-shadow:0 0 8px rgba(255,224,51,.6)}
+.b-cyan  {background:linear-gradient(90deg,var(--cyan2),var(--cyan));box-shadow:0 0 8px rgba(0,229,255,.6)}
+.b-fuel  {background:linear-gradient(90deg,#c97c00,var(--fuel-accent));box-shadow:0 0 8px rgba(247,183,49,.6)}
+
+/* ── MINI SENSOR GRID ── */
+.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mini-cell{display:flex;align-items:center;gap:7px;
+  background:rgba(0,0,0,0.2);border-radius:8px;padding:6px 8px;
+  border:1px solid rgba(255,255,255,0.04)}
+.mini-cell .icon-s{font-size:14px;flex-shrink:0}
+.ic-cyan{color:var(--cyan2);filter:drop-shadow(0 0 3px rgba(0,191,255,.4))}
+.ic-grn {color:var(--green);filter:drop-shadow(0 0 3px rgba(0,255,136,.4))}
+.ic-org {color:var(--orange);filter:drop-shadow(0 0 3px rgba(255,170,0,.4))}
+.ic-red {color:var(--red);filter:drop-shadow(0 0 3px rgba(255,61,61,.4))}
+.ic-yel {color:var(--yellow);filter:drop-shadow(0 0 3px rgba(255,224,51,.4))}
+.ic-fuel{color:var(--fuel-accent);filter:drop-shadow(0 0 3px rgba(247,183,49,.4))}
+.mc-info{display:flex;flex-direction:column;gap:1px}
+.mc-lbl{font-size:7px;font-weight:600;letter-spacing:1.2px;color:var(--t2);text-transform:uppercase}
+.mc-val{font-family:var(--fm);font-size:12px;font-weight:500;color:var(--cyan);transition:color .3s}
+.mc-val.mv-grn{color:var(--green)}
+.mc-val.mv-org{color:var(--orange)}
+.mc-val.mv-red{color:var(--red)}
+.mc-val.mv-yel{color:var(--yellow)}
+.mc-val.mv-fuel{color:var(--fuel-accent)}
+
+/* ── TRIPLE ROW TILE ── */
+.tile-triple{display:flex;align-items:center;padding:10px 12px}
+.tile-triple .mini{flex:1;display:flex;align-items:center;gap:8px}
+.tile-triple .dvdr{width:1px;height:30px;background:var(--border);flex-shrink:0;margin:0 8px}
+.icon-acc{font-size:16px;color:var(--cyan2);filter:drop-shadow(0 0 4px rgba(0,191,255,.4));flex-shrink:0}
+.icon-grn{font-size:16px;color:var(--green);filter:drop-shadow(0 0 4px rgba(0,255,136,.4));flex-shrink:0}
+.mini-info{display:flex;flex-direction:column;gap:2px}
+.mini-lbl{font-size:7px;font-weight:600;letter-spacing:1.5px;color:var(--t2);text-transform:uppercase}
+.mini-val{font-family:var(--fm);font-size:13px;font-weight:500;color:var(--cyan);transition:color .3s}
+.mini-val.mg{color:var(--green)}
+
+/* ── ROW PAIR TILE ── */
+.tile-pair{display:flex;align-items:center;padding:10px 13px}
+.tile-pair .mini{flex:1;display:flex;align-items:center;gap:8px}
+.tile-pair .dvdr{width:1px;height:30px;background:var(--border);flex-shrink:0;margin:0 12px}
+.tile-pair .mini-val{font-size:14px}
+
+/* ── HERO (SPEED) ── */
+.tile-hero{flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:12px 12px 8px;
+  background:linear-gradient(180deg,rgba(0,40,80,.6),rgba(4,12,24,.5));
+  border-color:rgba(0,229,255,.2)}
+.hero-lbl{font-size:9px;font-weight:600;letter-spacing:3px;color:var(--t2);margin-bottom:3px}
+.hero-ring-wrap{position:relative;width:160px;height:160px;flex-shrink:0}
+.hero-ring{width:100%;height:100%}
+.ring-track{fill:none;stroke:rgba(0,191,255,.08);stroke-width:10}
+.ring-arc{fill:none;stroke:url(#ag);stroke-width:10;stroke-linecap:round;
+  stroke-dasharray:0 565;stroke-dashoffset:141;
+  transform:rotate(-90deg);transform-origin:50% 50%;
+  transition:stroke-dasharray .35s cubic-bezier(.4,0,.2,1);
+  filter:drop-shadow(0 0 5px rgba(0,229,255,.6))}
+.ring-arc.ag{stroke:#00ff88;filter:drop-shadow(0 0 5px rgba(0,255,136,.6))}
+.ring-arc.ar{stroke:#ff3d3d;filter:drop-shadow(0 0 5px rgba(255,61,61,.6))}
+.hero-center{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center}
+.hero-spd{font-family:var(--fm);font-size:58px;font-weight:400;line-height:1;
+  color:var(--t1);text-shadow:0 0 25px rgba(0,229,255,.35);transition:color .3s,text-shadow .3s}
+.hero-spd.sg{color:var(--green);text-shadow:0 0 25px rgba(0,255,136,.4)}
+.hero-spd.sr{color:var(--red);text-shadow:0 0 25px rgba(255,61,61,.4)}
+.hero-kmh{font-family:var(--fm);font-size:10px;color:var(--t2);letter-spacing:3px;margin-top:2px}
+.hero-meta{display:flex;width:100%;margin-top:8px;
+  border-top:1px solid var(--border);padding-top:8px}
+.hm-item{display:flex;flex-direction:column;align-items:center;flex:1;gap:2px}
+.hm-item+.hm-item{border-left:1px solid var(--border)}
+.hm-lbl{font-size:7px;font-weight:600;letter-spacing:1.5px;color:var(--t2)}
+.hm-val{font-family:var(--fm);font-size:12px;color:var(--cyan)}
+.hm-gear{font-size:18px;font-weight:500;color:var(--green);text-shadow:0 0 10px rgba(0,255,136,.4)}
+
+/* ══════════════════════════════════
+   FUEL SECTION TILE
+══════════════════════════════════ */
+.tile-fuel-section{
+  border-color:rgba(247,183,49,0.25);
+  background:linear-gradient(135deg,rgba(8,20,42,0.85) 0%,rgba(30,18,4,0.5) 100%);
+  padding:11px 13px;
+}
+.tile-fuel-section:hover{border-color:rgba(247,183,49,0.5)}
+.fuel-sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;
+  padding-bottom:7px;border-bottom:1px solid rgba(247,183,49,0.15)}
+.fuel-sec-title{font-size:9px;font-weight:700;letter-spacing:2.5px;
+  color:var(--fuel-accent);text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.fuel-sec-title i{font-size:12px}
+.fuel-pct-big{font-family:var(--fm);font-size:22px;font-weight:500;
+  color:var(--fuel-accent);transition:color .3s;text-shadow:0 0 12px rgba(247,183,49,.4)}
+
+/* Main fuel bar */
+.fuel-bar-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.fuel-e{font-family:var(--fm);font-size:10px;color:var(--red);font-weight:500}
+.fuel-f{font-family:var(--fm);font-size:10px;color:var(--t2);font-weight:500}
+.fuel-track{flex:1;height:10px;background:rgba(0,0,0,0.5);border-radius:5px;
+  overflow:hidden;position:relative}
+.fuel-track .bar-fill{height:100%}
+.fuel-range{text-align:right;font-family:var(--fm);font-size:9px;color:var(--t2);margin-bottom:8px}
+
+/* Fuel mini grid */
+.fuel-mini-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+.fuel-mini-cell{display:flex;flex-direction:column;gap:2px;
+  background:rgba(247,183,49,0.05);border:1px solid rgba(247,183,49,0.1);
+  border-radius:7px;padding:5px 7px}
+.fmc-lbl{font-size:7px;font-weight:600;letter-spacing:1px;
+  color:rgba(247,183,49,0.6);text-transform:uppercase}
+.fmc-val{font-family:var(--fm);font-size:12px;color:var(--fuel-accent);transition:color .3s}
+.fmc-val.fv-good{color:var(--green)}
+.fmc-val.fv-warn{color:var(--orange)}
+.fmc-val.fv-bad{color:var(--red)}
+
+/* Fuel efficiency bar */
+.eff-row{display:flex;align-items:center;gap:6px;margin-top:7px}
+.eff-lbl{font-size:7px;font-weight:600;letter-spacing:1px;color:var(--t2);white-space:nowrap;width:52px}
+.eff-track{flex:1;height:5px;background:rgba(0,0,0,0.4);border-radius:3px;overflow:hidden}
+.eff-fill{height:100%;border-radius:3px;transition:width .4s;
+  background:linear-gradient(90deg,#c97c00,var(--fuel-accent));
+  box-shadow:0 0 6px rgba(247,183,49,.5)}
+
+/* ── CAR IMAGE ── */
+.tile-car{flex:1;display:flex;align-items:center;justify-content:center;
+  background:transparent;border-color:transparent;box-shadow:none;padding:0;min-height:80px}
+.tile-car:hover{border-color:transparent}
+.car-img{width:100%;max-width:280px;object-fit:contain;
+  mix-blend-mode:screen;
+  filter:drop-shadow(0 6px 20px rgba(0,0,0,.8)) contrast(1.05) brightness(1.05);
+  pointer-events:none}
+
+/* ── DTC FOOTER ── */
+.dtc-bar{position:relative;z-index:10;display:flex;align-items:center;
+  gap:12px;padding:6px 18px;
+  background:rgba(4,12,24,.92);border-top:1px solid var(--border);
+  flex-shrink:0;height:40px}
+.dtc-lbl{font-size:8px;font-weight:600;letter-spacing:2px;color:var(--t2);white-space:nowrap}
+.dtc-codes{flex:1;display:flex;align-items:center;gap:7px;overflow:hidden}
+.dtc-ok{font-family:var(--fm);font-size:9px;color:var(--green)}
+.dtc-tag{font-family:var(--fm);font-size:9px;
+  background:rgba(255,61,61,.12);border:1px solid rgba(255,61,61,.35);
+  color:var(--red);padding:2px 7px;border-radius:4px;letter-spacing:1px}
+.drive-blk{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.dt-lbl{font-size:7px;font-weight:600;letter-spacing:1.5px;color:var(--t2)}
+.dt-val{font-family:var(--fm);font-size:13px;color:var(--t1)}
+
+/* ── DEMO BANNER ── */
+#demo-banner{display:none;position:fixed;bottom:48px;left:50%;
+  transform:translateX(-50%);background:rgba(255,170,0,.15);
+  border:1px solid rgba(255,170,0,.4);color:var(--orange);
+  font-family:var(--fm);font-size:9px;letter-spacing:2px;
+  padding:3px 16px;border-radius:4px;z-index:200;pointer-events:none}
+#demo-banner.show{display:block}
+
+/* ── WARN GLOW ── */
+.warn-glow{border-color:rgba(255,170,0,.5)!important;
+  box-shadow:0 0 20px rgba(255,170,0,.1),0 4px 20px rgba(0,0,0,.4)!important}
+.danger-glow{border-color:rgba(255,61,61,.5)!important;
+  box-shadow:0 0 20px rgba(255,61,61,.12),0 4px 20px rgba(0,0,0,.4)!important}
+
+/* ── SECTION DIVIDER LABEL ── */
+.sec-divider{font-size:8px;font-weight:700;letter-spacing:2px;
+  color:rgba(0,191,255,0.4);text-transform:uppercase;padding:2px 0;
+  border-bottom:1px solid rgba(0,191,255,0.08);margin-bottom:0}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-romb">◆</span>
+    <span class="brand-name">TRIBER</span>
+    <span class="brand-sub">OBD II</span>
+  </div>
+  <div id="conn-pill" class="conn-pill disconnected" onclick="toggleBluetooth()">
+    <span class="conn-dot"></span>
+    <span id="conn-label">TAP TO CONNECT</span>
+  </div>
+  <div class="time-block">
+    <div id="clock" class="time-clock">--:--</div>
+    <div id="date" class="time-date">-- --- ----</div>
+  </div>
+</header>
+
+<!-- DASHBOARD: 4 columns -->
+<main class="dashboard">
+
+  <!-- ══ COL 1 — ENGINE ══ -->
+  <div class="col">
+    <!-- RPM -->
+    <div class="tile tile-rpm">
+      <div class="tlabel"><i class="fa-solid fa-gauge-simple-high"></i>ENGINE RPM</div>
+      <div class="val-row">
+        <span id="rpm" class="val-xl">0.00</span>
+        <span class="val-unit">×1000</span>
+      </div>
+      <div class="bar-track">
+        <div id="rpm-bar" class="bar-fill b-blue"></div>
+        <div class="bar-marker" style="left:25%"></div>
+        <div class="bar-marker" style="left:50%"></div>
+        <div class="bar-marker" style="left:75%"></div>
+      </div>
+      <div class="rpm-zones"><span>IDLE</span><span>MID</span><span>PWR</span><span>RED</span></div>
+    </div>
+
+    <!-- Engine sensors grid -->
+    <div class="tile">
+      <div class="tlabel"><i class="fa-solid fa-microchip"></i>ENGINE SENSORS</div>
+      <div class="mini-grid">
+        <div class="mini-cell">
+          <i class="fa-solid fa-temperature-half icon-s ic-cyan"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">COOLANT</span>
+            <span id="coolant" class="mc-val">--°C</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-thermometer-half icon-s ic-org"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">INTAKE AIR</span>
+            <span id="intake" class="mc-val">--°C</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-gauge icon-s ic-cyan"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">MAP PRESS</span>
+            <span id="map" class="mc-val">-- kPa</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-tachometer-alt icon-s ic-cyan"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">THROTTLE</span>
+            <span id="throttle" class="mc-val">--%</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-engine icon-s ic-cyan"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">ENG LOAD</span>
+            <span id="load" class="mc-val">--%</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-rotate icon-s ic-cyan"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">TIMING ADV</span>
+            <span id="timing" class="mc-val">-- °</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exhaust + O2 -->
+    <div class="tile">
+      <div class="tlabel"><i class="fa-solid fa-wind"></i>EXHAUST / O2</div>
+      <div class="mini-grid">
+        <div class="mini-cell">
+          <i class="fa-solid fa-fire icon-s ic-red"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">EXH TEMP</span>
+            <span id="exhaust" class="mc-val mv-red">--°C</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-circle-dot icon-s ic-grn"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">O2 BANK1</span>
+            <span id="o2b1" class="mc-val">-- V</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-circle-dot icon-s ic-yel"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">O2 BANK2</span>
+            <span id="o2b2" class="mc-val">-- V</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-percent icon-s ic-cyan"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">EGR CMD</span>
+            <span id="egr" class="mc-val">--%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ COL 2 — SENSORS ══ -->
+  <div class="col">
+    <!-- Battery + BARO -->
+    <div class="tile tile-triple">
+      <div class="mini">
+        <i class="fa-solid fa-car-battery icon-grn"></i>
+        <div class="mini-info">
+          <span class="mini-lbl">BATTERY</span>
+          <span id="battery" class="mini-val mg">--V</span>
+        </div>
+      </div>
+      <div class="dvdr"></div>
+      <div class="mini">
+        <i class="fa-solid fa-cloud icon-acc"></i>
+        <div class="mini-info">
+          <span class="mini-lbl">BARO PRESS</span>
+          <span id="baro" class="mini-val">-- kPa</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAF + STFT + LTFT -->
+    <div class="tile">
+      <div class="tlabel"><i class="fa-solid fa-sliders"></i>AIR / FUEL TRIM</div>
+      <div class="mini-grid">
+        <div class="mini-cell">
+          <i class="fa-solid fa-wind icon-s ic-cyan"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">MAF</span>
+            <span id="maf" class="mc-val">-- g/s</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-arrows-left-right icon-s ic-grn"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">STFT B1</span>
+            <span id="stft1" class="mc-val">--%</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-arrows-left-right icon-s ic-yel"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">LTFT B1</span>
+            <span id="ltft1" class="mc-val">--%</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-arrows-left-right icon-s ic-org"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">LTFT B2</span>
+            <span id="ltft2" class="mc-val">--%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trip stats -->
+    <div class="tile">
+      <div class="tlabel"><i class="fa-solid fa-road"></i>TRIP STATS</div>
+      <div class="mini-grid">
+        <div class="mini-cell">
+          <i class="fa-solid fa-road icon-s ic-cyan"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">TRIP DIST</span>
+            <span id="trip" class="mc-val">-- km</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-gauge-simple icon-s ic-grn"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">AVG SPEED</span>
+            <span id="avg" class="mc-val mv-grn">-- km/h</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-bolt icon-s ic-cyan"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">ACCEL</span>
+            <span id="accel" class="mc-val">-- m/s²</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-clock icon-s ic-org"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">RUNTIME</span>
+            <span id="runtime" class="mc-val">-- min</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Car image placeholder -->
+    <div class="tile tile-car">
+      <img src="triber.png" alt="Renault Triber" class="car-img"
+           onerror="this.style.display='none'">
+    </div>
+  </div>
+
+  <!-- ══ COL 3 — SPEED HERO + FUEL SECTION ══ -->
+  <div class="col">
+    <!-- Speed Hero -->
+    <div class="tile tile-hero">
+      <div class="hero-lbl">VEHICLE SPEED</div>
+      <div class="hero-ring-wrap">
+        <svg class="hero-ring" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="ag" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#00bfff"/>
+              <stop offset="100%" stop-color="#00ffcc"/>
+            </linearGradient>
+          </defs>
+          <circle cx="100" cy="100" r="90" class="ring-track"/>
+          <circle id="speed-arc" cx="100" cy="100" r="90" class="ring-arc"
+            stroke-dasharray="0 565" stroke-dashoffset="141"/>
+        </svg>
+        <div class="hero-center">
+          <div id="speed" class="hero-spd">0</div>
+          <div class="hero-kmh">km/h</div>
+        </div>
+      </div>
+      <div class="hero-meta">
+        <div class="hm-item"><span class="hm-lbl">AVG</span><span id="avg2" class="hm-val">--</span></div>
+        <div class="hm-item"><span class="hm-lbl">GEAR</span><span id="gear" class="hm-val hm-gear">--</span></div>
+        <div class="hm-item"><span class="hm-lbl">ACCEL</span><span id="accel2" class="hm-val">--</span></div>
+      </div>
+    </div>
+
+    <!-- ══ FUEL SECTION ══ -->
+    <div class="tile tile-fuel-section">
+      <div class="fuel-sec-hdr">
+        <div class="fuel-sec-title">
+          <i class="fa-solid fa-gas-pump"></i>
+          FUEL SYSTEM
+        </div>
+        <span id="fuel-pct" class="fuel-pct-big">--%</span>
+      </div>
+
+      <!-- Main fuel bar -->
+      <div class="fuel-bar-row">
+        <span class="fuel-e">E</span>
+        <div class="fuel-track">
+          <div id="fuel-bar" class="bar-fill b-green"></div>
+        </div>
+        <span class="fuel-f">F</span>
+      </div>
+      <div class="fuel-range" id="range">Est. Range: -- km</div>
+
+      <!-- 6-cell fuel data grid -->
+      <div class="fuel-mini-grid">
+        <div class="fuel-mini-cell">
+          <span class="fmc-lbl">FUEL RATE</span>
+          <span id="fuelrate" class="fmc-val">-- L/h</span>
+        </div>
+        <div class="fuel-mini-cell">
+          <span class="fmc-lbl">MILEAGE</span>
+          <span id="mileage" class="fmc-val fv-good">-- km/l</span>
+        </div>
+        <div class="fuel-mini-cell">
+          <span class="fmc-lbl">USED TRIP</span>
+          <span id="fuel-used" class="fmc-val">-- L</span>
+        </div>
+        <div class="fuel-mini-cell">
+          <span class="fmc-lbl">INJ TIMING</span>
+          <span id="inj-timing" class="fmc-val">-- ms</span>
+        </div>
+        <div class="fuel-mini-cell">
+          <span class="fmc-lbl">LAMBDA</span>
+          <span id="lambda" class="fmc-val">--</span>
+        </div>
+        <div class="fuel-mini-cell">
+          <span class="fmc-lbl">FUEL PRESS</span>
+          <span id="fuel-press" class="fmc-val">-- kPa</span>
+        </div>
+      </div>
+
+      <!-- Efficiency bar -->
+      <div class="eff-row">
+        <span class="eff-lbl">EFFICIENCY</span>
+        <div class="eff-track">
+          <div id="eff-bar" class="eff-fill" style="width:0%"></div>
+        </div>
+        <span id="eff-val" style="font-family:var(--fm);font-size:9px;color:var(--fuel-accent);margin-left:5px;white-space:nowrap">--%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ COL 4 — SPEED META + ADDITIONAL ══ -->
+  <div class="col">
+    <!-- Gear + Speed meta -->
+    <div class="tile">
+      <div class="tlabel"><i class="fa-solid fa-gears"></i>TRANSMISSION</div>
+      <div style="display:flex;align-items:center;gap:14px;padding:4px 0">
+        <div style="font-family:var(--fm);font-size:52px;font-weight:400;color:var(--green);
+          text-shadow:0 0 20px rgba(0,255,136,.5);line-height:1" id="gear-big">N</div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex:1">
+          <div class="mini-cell">
+            <i class="fa-solid fa-gauge-simple icon-s ic-cyan"></i>
+            <div class="mc-info">
+              <span class="mc-lbl">TOP SPEED</span>
+              <span id="topspd" class="mc-val">-- km/h</span>
+            </div>
+          </div>
+          <div class="mini-cell">
+            <i class="fa-solid fa-stopwatch icon-s ic-grn"></i>
+            <div class="mc-info">
+              <span class="mc-lbl">DRIVE TIME</span>
+              <span id="drive" class="mc-val mv-grn">00:00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RPM with load bar -->
+    <div class="tile">
+      <div class="tlabel"><i class="fa-solid fa-circle-half-stroke"></i>ENGINE LOAD</div>
+      <div class="val-row">
+        <span id="load-big" class="val-xl" style="font-size:36px">--%</span>
+      </div>
+      <div class="bar-track" style="height:8px">
+        <div id="load-bar" class="bar-fill b-cyan"></div>
+      </div>
+      <div class="rpm-zones" style="margin-top:3px"><span>IDLE</span><span>CRUISE</span><span>POWER</span></div>
+    </div>
+
+    <!-- Throttle bar -->
+    <div class="tile">
+      <div class="tlabel"><i class="fa-solid fa-arrow-up-right-dots"></i>THROTTLE POS</div>
+      <div class="val-row">
+        <span id="throttle-big" class="val-xl" style="font-size:36px">--%</span>
+      </div>
+      <div class="bar-track" style="height:8px">
+        <div id="throttle-bar" class="bar-fill b-orange"></div>
+      </div>
+    </div>
+
+    <!-- Ambient + Additional -->
+    <div class="tile">
+      <div class="tlabel"><i class="fa-solid fa-satellite-dish"></i>AMBIENT</div>
+      <div class="mini-grid">
+        <div class="mini-cell">
+          <i class="fa-solid fa-temperature-low icon-s ic-cyan"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">AMB TEMP</span>
+            <span id="amb-temp" class="mc-val">--°C</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-cloud icon-s ic-cyan"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">BARO</span>
+            <span id="baro2" class="mc-val">-- kPa</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-bolt icon-s ic-yel"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">IGN VOLT</span>
+            <span id="ign-volt" class="mc-val mv-yel">-- V</span>
+          </div>
+        </div>
+        <div class="mini-cell">
+          <i class="fa-solid fa-wave-square icon-s ic-grn"></i>
+          <div class="mc-info">
+            <span class="mc-lbl">EVAP PURG</span>
+            <span id="evap" class="mc-val">--%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- DTC FOOTER -->
+<footer class="dtc-bar">
+  <i class="fa-solid fa-shield-halved" style="color:var(--cyan2);font-size:13px"></i>
+  <span class="dtc-lbl">FAULT CODES</span>
+  <div id="dtc-display" class="dtc-codes">
+    <span class="dtc-ok"><i class="fa-regular fa-circle-check"></i> No Active DTCs — System Healthy</span>
+  </div>
+  <div class="drive-blk">
+    <span class="dt-lbl">SESSION</span>
+    <span id="drive-foot" class="dt-val">00:00</span>
+  </div>
+</footer>
+
+<div id="demo-banner">◈ DEMO MODE — TAP CONNECT FOR LIVE DATA ◈</div>
+
+<script>
+"use strict";
+
+// ─────────────────────────────────────────────
+//  CLOCK
+// ─────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  let h = now.getHours(), m = now.getMinutes();
+  const ap = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  document.getElementById('clock').textContent =
+    `${h}:${String(m).padStart(2,'0')} ${ap}`;
+  document.getElementById('date').textContent =
+    now.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
+}
+updateClock(); setInterval(updateClock, 1000);
+
+// ─────────────────────────────────────────────
+//  UI HELPERS
+// ─────────────────────────────────────────────
+const ARC_C = 565.5;
+
+function setBar(id, pct, cls) {
+  const b = document.getElementById(id);
+  if (!b) return;
+  b.style.width = Math.min(Math.max(pct,0),100) + '%';
+  b.className = 'bar-fill ' + cls;
+}
+
+function setArc(speed) {
+  const arc = document.getElementById('speed-arc');
+  const fill = Math.min(speed / 160, 1);
+  arc.style.strokeDasharray = `${fill * ARC_C} ${ARC_C}`;
+  arc.classList.remove('ag','ar');
+  if (speed >= 60 && speed <= 80) arc.classList.add('ag');
+  else if (speed > 100)           arc.classList.add('ar');
+}
+
+function setText(id, val, suffix='') {
+  const el = document.getElementById(id);
+  if (el) el.textContent = (val !== null && val !== undefined && val !== '') ? val + suffix : '--';
+}
+
+// ─────────────────────────────────────────────
+//  RENDER OBD DATA → DOM
+// ─────────────────────────────────────────────
+let driveStart = null, topSpeed = 0;
+let fuelUsed = 0, lastFuelT = 0;
+
+function render(d) {
+  // ── SPEED
+  const spd = Math.round(d.speed || 0);
+  document.getElementById('speed').textContent = spd;
+  document.getElementById('speed').className =
+    'hero-spd' + (spd>=60&&spd<=80?' sg':spd>100?' sr':'');
+  setArc(spd);
+  if (spd > topSpeed) { topSpeed = spd; setText('topspd', topSpeed, ' km/h'); }
+
+  // ── RPM
+  const rpm = parseFloat(d.rpm) || 0;
+  document.getElementById('rpm').textContent = rpm.toFixed(2);
+  setBar('rpm-bar', (rpm/8)*100,
+    rpm < 2 ? 'b-blue' : rpm < 3 ? 'b-orange' : 'b-red');
+
+  // ── GEAR
+  const g = d.gear || 'N';
+  setText('gear', g); setText('gear-big', g);
+
+  // ── FUEL SECTION
+  const fuel = parseFloat(d.fuel) || 0;
+  document.getElementById('fuel-pct').textContent = Math.round(fuel) + '%';
+  const fpEl = document.getElementById('fuel-pct');
+  fpEl.style.color = fuel<=15 ? 'var(--red)' : fuel<=30 ? 'var(--orange)' :
+    fuel<=60 ? 'var(--yellow)' : 'var(--fuel-accent)';
+  setBar('fuel-bar', fuel,
+    fuel<=15 ? 'b-red' : fuel<=30 ? 'b-orange' : fuel<=60 ? 'b-yellow' : 'b-fuel');
+  setText('range', d.range != null ? 'Est. Range: ' + d.range + ' km' : 'Est. Range: -- km');
+
+  const fr = parseFloat(d.fuelrate) || 0;
+  setText('fuelrate', fr > 0 ? fr.toFixed(1) : null, ' L/h');
+
+  const mil = parseFloat(d.mileage) || 0;
+  const milEl = document.getElementById('mileage');
+  if (mil > 0) {
+    milEl.textContent = mil.toFixed(1) + ' km/l';
+    milEl.className = 'fmc-val' + (mil > 18 ? ' fv-good' : mil > 12 ? '' : ' fv-warn');
+  }
+
+  // Fuel used accumulator
+  const now = Date.now();
+  if (fr > 0 && lastFuelT > 0) fuelUsed += fr * (now - lastFuelT) / 3600000;
+  lastFuelT = now;
+  setText('fuel-used', fuelUsed > 0 ? fuelUsed.toFixed(2) : null, ' L');
+
+  // Efficiency bar (based on mileage vs max ~25 km/l)
+  const effPct = Math.min((mil / 25) * 100, 100);
+  document.getElementById('eff-bar').style.width = effPct.toFixed(0) + '%';
+  document.getElementById('eff-val').textContent = effPct.toFixed(0) + '%';
+
+  // Injection timing (PID 0x06/fuelrate approximation)
+  if (d.inj_timing != null) setText('inj-timing', parseFloat(d.inj_timing).toFixed(2), ' ms');
+  if (d.lambda != null)     setText('lambda', parseFloat(d.lambda).toFixed(3));
+  if (d.fuel_press != null) setText('fuel-press', d.fuel_press, ' kPa');
+
+  // ── BATTERY
+  const vbat = parseFloat(d.battery) || 0;
+  const batEl = document.getElementById('battery');
+  batEl.textContent = vbat > 0 ? vbat.toFixed(1) + 'V' : '--V';
+  batEl.style.color = vbat > 0 && vbat < 11.5 ? 'var(--red)' : vbat < 12.2 ? 'var(--orange)' : '';
+  setText('ign-volt', vbat > 0 ? vbat.toFixed(1) : null, ' V');
+
+  // ── ENGINE SENSORS
+  const coolant = d.coolant;
+  const coolEl = document.getElementById('coolant');
+  if (coolant != null) {
+    coolEl.textContent = coolant + '°C';
+    coolEl.className = 'mc-val' + (coolant > 105 ? ' mv-red' : coolant > 95 ? ' mv-org' : '');
+  }
+  const load = d.load;
+  const loadPct = load != null ? load : 0;
+  setText('load', load != null ? load : null, '%');
+  setText('load-big', load != null ? load : null, '%');
+  setBar('load-bar', loadPct,
+    loadPct < 40 ? 'b-cyan' : loadPct < 70 ? 'b-orange' : 'b-red');
+
+  const thr = d.throttle;
+  setText('throttle', thr != null ? thr : null, '%');
+  setText('throttle-big', thr != null ? thr : null, '%');
+  setBar('throttle-bar', thr || 0,
+    (thr||0) < 30 ? 'b-cyan' : (thr||0) < 70 ? 'b-orange' : 'b-red');
+
+  setText('intake',   d.intake   != null ? d.intake   : null, '°C');
+  setText('map',      d.map      != null ? d.map      : null, ' kPa');
+  setText('baro',     d.baro     != null ? d.baro     : null, ' kPa');
+  setText('baro2',    d.baro     != null ? d.baro     : null, ' kPa');
+  setText('timing',   d.timing   != null ? d.timing   : null, ' °');
+  setText('maf',      d.maf_raw  != null ? parseFloat(d.maf_raw).toFixed(1) : null, ' g/s');
+  setText('stft1',    d.stft1    != null ? d.stft1    : null, '%');
+  setText('ltft1',    d.ltft1    != null ? d.ltft1    : null, '%');
+  setText('ltft2',    d.ltft2    != null ? d.ltft2    : null, '%');
+  setText('exhaust',  d.exhaust  != null ? d.exhaust  : null, '°C');
+  setText('o2b1',     d.o2b1     != null ? parseFloat(d.o2b1).toFixed(3) : null, ' V');
+  setText('o2b2',     d.o2b2     != null ? parseFloat(d.o2b2).toFixed(3) : null, ' V');
+  setText('egr',      d.egr      != null ? d.egr      : null, '%');
+  setText('amb-temp', d.amb_temp != null ? d.amb_temp : null, '°C');
+  setText('evap',     d.evap     != null ? d.evap     : null, '%');
+  setText('runtime',  d.engine_runtime != null ? d.engine_runtime : null, ' min');
+  setText('trip',     d.trip     != null ? parseFloat(d.trip).toFixed(1) : null, ' km');
+  setText('avg',      d.avg      != null ? Math.round(d.avg) : null, ' km/h');
+  setText('avg2',     d.avg      != null ? Math.round(d.avg) : null, '');
+  setText('accel',    d.accel    != null ? parseFloat(d.accel).toFixed(1) : null, ' m/s²');
+  setText('accel2',   d.accel    != null ? parseFloat(d.accel).toFixed(1) : null, '');
+
+  // ── DTC
+  const dtcDiv = document.getElementById('dtc-display');
+  if (d.dtc && d.dtc.length > 0) {
+    dtcDiv.innerHTML = '';
+    d.dtc.forEach(c => {
+      const t = document.createElement('span');
+      t.className = 'dtc-tag'; t.textContent = c; dtcDiv.appendChild(t);
+    });
+  } else {
+    dtcDiv.innerHTML =
+      '<span class="dtc-ok"><i class="fa-regular fa-circle-check"></i> No Active DTCs — System Healthy</span>';
+  }
+
+  // ── DRIVE TIMER
+  if (spd > 2 && !driveStart) driveStart = Date.now();
+  if (driveStart) {
+    const e = Math.floor((Date.now()-driveStart)/1000);
+    const t = String(Math.floor(e/3600)).padStart(2,'0') + ':' +
+              String(Math.floor((e%3600)/60)).padStart(2,'0');
+    document.getElementById('drive').textContent = t;
+    document.getElementById('drive-foot').textContent = t;
+  }
+}
+
+// ─────────────────────────────────────────────
+//  DEMO MODE
+// ─────────────────────────────────────────────
+let demoTimer=null, demoSpd=55, demoDir=1, demoFuel=72, demoRuntimeMin=8;
+const epoch = Date.now();
+
+function startDemo() {
+  document.getElementById('demo-banner').classList.add('show');
+  if (demoTimer) return;
+  demoTimer = setInterval(() => {
+    demoSpd += demoDir * (1 + Math.random()*3);
+    if (demoSpd > 105 || demoSpd < 18) demoDir *= -1;
+    demoSpd = Math.max(0, Math.min(160, demoSpd));
+    demoFuel = Math.max(0, demoFuel - 0.015);
+    demoRuntimeMin += 0.013;
+    const spd = Math.round(demoSpd);
+    const rpm = parseFloat((0.8 + (demoSpd/160)*4.2 + (Math.random()-.5)*.3).toFixed(2));
+    const gear = spd<5?'N':spd<22?'1':spd<40?'2':spd<60?'3':spd<80?'4':'5';
+    const fr = (1.8+Math.random()*.8).toFixed(1);
+    const mil = (15.5+Math.random()*1.5).toFixed(1);
+    const thr = 18+Math.floor(Math.random()*10);
+    const stft = ((Math.random()*6)-3).toFixed(1);
+    const ltft = ((Math.random()*4)-2).toFixed(1);
+    render({
+      speed:spd, rpm, fuel:Math.round(demoFuel),
+      battery:(13.7+Math.random()*.2).toFixed(1),
+      coolant:82+Math.floor(Math.random()*3),
+      intake:36+Math.floor(Math.random()*4),
+      map:95+Math.floor(Math.random()*15),
+      throttle:thr,
+      load:30+Math.floor(Math.random()*15),
+      fuelrate:fr,
+      mileage:mil,
+      trip:parseFloat((94.2+(Date.now()-epoch)/60000*.8).toFixed(1)),
+      avg:48+Math.floor(Math.random()*4),
+      accel:(Math.random()*1.5).toFixed(1),
+      range:Math.round(demoFuel*4.3),
+      gear, dtc:[],
+      timing:(8+Math.random()*5).toFixed(1),
+      maf_raw:(18+Math.random()*8).toFixed(1),
+      stft1:stft, ltft1:ltft, ltft2:((Math.random()*4)-2).toFixed(1),
+      exhaust:Math.round(420+Math.random()*60),
+      o2b1:(0.45+Math.random()*.1).toFixed(3),
+      o2b2:(0.44+Math.random()*.1).toFixed(3),
+      egr:Math.round(Math.random()*5),
+      baro:101+Math.floor(Math.random()*2),
+      amb_temp:32+Math.floor(Math.random()*3),
+      evap:Math.round(Math.random()*15),
+      engine_runtime:Math.round(demoRuntimeMin),
+      inj_timing:(2.8+Math.random()*.4).toFixed(2),
+      lambda:(0.98+Math.random()*.04).toFixed(3),
+      fuel_press:380+Math.floor(Math.random()*20),
+    });
+  }, 800);
+}
+
+function stopDemo() {
+  document.getElementById('demo-banner').classList.remove('show');
+  if (demoTimer) { clearInterval(demoTimer); demoTimer = null; }
+}
+
+// ─────────────────────────────────────────────
+//  ELM327 OBD PARSER
+// ─────────────────────────────────────────────
+let tripKm=0, spdSum=0, spdN=0, prevSpd=0, lastSpdT=0;
+let mafVal=0;
+
+function parseELM(line) {
+  line = line.replace(/[\r\n>]/g,'').trim().toUpperCase();
+  if (!line || line.startsWith('?') || line.startsWith('NO') ||
+      line.startsWith('ERR') || line.startsWith('UNABLE')) return null;
+
+  const idx = line.indexOf('41');
+  if (idx < 0) return null;
+  const hex = line.substring(idx).replace(/ /g,'');
+  if (hex.length < 6) return null;
+
+  const bytes = [];
+  for (let i=0; i<hex.length-1; i+=2)
+    bytes.push(parseInt(hex.substr(i,2),16));
+  if (bytes.length < 3 || bytes[0] !== 0x41) return null;
+
+  const pid = bytes[1], A = bytes[2], B = bytes[3]||0, C = bytes[4]||0, D = bytes[5]||0;
+  const now = Date.now();
+
+  switch(pid) {
+    case 0x0C: obdState.rpm = ((A*256+B)/4/1000).toFixed(2); break;
+    case 0x0D:
+      obdState.speed = A;
+      if (lastSpdT) {
+        const dt = (now-lastSpdT)/1000;
+        if (dt > 0) {
+          obdState.accel = ((A-prevSpd)/3.6/dt).toFixed(1);
+          tripKm += A/3.6*dt/1000;
+          obdState.trip = tripKm.toFixed(1);
+          spdSum+=A; spdN++; obdState.avg = Math.round(spdSum/spdN);
+        }
+      }
+      prevSpd=A; lastSpdT=now;
+      break;
+    case 0x05: obdState.coolant = A-40; break;
+    case 0x04: obdState.load = Math.round(A*100/255); break;
+    case 0x0B: obdState.map = A; break;
+    case 0x0F: obdState.intake = A-40; break;
+    case 0x11: obdState.throttle = Math.round(A*100/255); break;
+    case 0x2F: obdState.fuel = Math.round(A*100/255); break;
+    case 0x42: obdState.battery = ((A*256+B)/1000).toFixed(1); break;
+    case 0x10:
+      mafVal = (A*256+B)/100;
+      obdState.maf_raw = mafVal.toFixed(1);
+      obdState.fuelrate = mafVal>0 ? ((mafVal/14.7)/0.745*3.6).toFixed(1) : '0.0';
+      if (parseFloat(obdState.fuelrate)>0.1 && A>0)
+        obdState.mileage = (obdState.speed/(parseFloat(obdState.fuelrate)/3.6)).toFixed(1);
+      break;
+    case 0x3C: obdState.exhaust = Math.round((A*256+B)/10-40); break;
+    case 0x0E: obdState.timing = (A/2-64).toFixed(1); break;         // Timing advance
+    case 0x06: obdState.stft1 = ((A-128)*100/128).toFixed(1); break; // STFT B1
+    case 0x07: obdState.ltft1 = ((A-128)*100/128).toFixed(1); break; // LTFT B1
+    case 0x09: obdState.ltft2 = ((A-128)*100/128).toFixed(1); break; // LTFT B2
+    case 0x14: obdState.o2b1 = (A/200).toFixed(3); break;             // O2 S1
+    case 0x15: obdState.o2b2 = (A/200).toFixed(3); break;             // O2 S2
+    case 0x2C: obdState.egr = Math.round(A*100/255); break;            // EGR cmd
+    case 0x33: obdState.baro = A; break;                               // Barometric pressure
+    case 0x46: obdState.amb_temp = A-40; break;                        // Ambient air temp
+    case 0x2E: obdState.evap = Math.round(A*100/255); break;           // Evap purge
+    case 0x1F: obdState.engine_runtime = Math.round((A*256+B)/60); break; // Runtime since start
+    case 0x0A: obdState.fuel_press = A*3; break;                       // Fuel pressure
+    case 0x24:                                                          // O2 wideband lambda
+      obdState.lambda = ((2/65536)*(A*256+B)).toFixed(3); break;
+  }
+
+  // Gear estimate
+  const r = obdState.speed;
+  const rpmK = parseFloat(obdState.rpm)*1000;
+  obdState.gear = r<5?'N': r<22?'1': r<40?'2': r<60?'3': r<80?'4': '5';
+  obdState.range = Math.round(obdState.fuel*4.3);
+  obdState.dtc = [];
+  return true;
+}
+
+const obdState = {
+  rpm:'0.00',speed:0,coolant:0,fuel:0,battery:'0.0',
+  load:0,map:0,intake:0,throttle:0,fuelrate:'0.0',maf_raw:'0.0',
+  mileage:'0.0',trip:'0.0',avg:0,accel:'0.0',
+  exhaust:0,gear:'N',range:0,dtc:[],
+  timing:0,stft1:0,ltft1:0,ltft2:0,
+  o2b1:0,o2b2:0,egr:0,baro:0,amb_temp:0,
+  evap:0,engine_runtime:0,fuel_press:0,lambda:0
+};
+
+// ─────────────────────────────────────────────
+//  WEB BLUETOOTH — ELM327
+// ─────────────────────────────────────────────
+const SPP_SERVICE  = '00001101-0000-1000-8000-00805f9b34fb';
+const NUS_SERVICE  = '6e400001-b5ba-f393-e0a9-e50e24dcca9e';
+const NUS_TX       = '6e400003-b5ba-f393-e0a9-e50e24dcca9e';
+const NUS_RX       = '6e400002-b5ba-f393-e0a9-e50e24dcca9e';
+
+let btDevice=null, btChar=null, btRxChar=null, btConnected=false;
+let elmInitDone=false, elmBuf='', curPID=0;
+let pollTimer=null;
+
+const PIDS = [
+  '010C\r','010D\r','0105\r','0104\r','010B\r',
+  '010F\r','0111\r','012F\r','0142\r','0110\r',
+  '010E\r','0106\r','0107\r','0109\r','0114\r',
+  '0115\r','012C\r','0133\r','0146\r','012E\r',
+  '011F\r','010A\r','013C\r','0124\r'
+];
+const INIT_CMDS = ['ATZ\r','ATE0\r','ATL0\r','ATSP0\r','ATH0\r'];
+let initIdx=0, waitingResp=false, cmdTimeout=null;
+
+function setConnUI(state) {
+  const pill = document.getElementById('conn-pill');
+  const lbl  = document.getElementById('conn-label');
+  pill.className = 'conn-pill ' + state;
+  lbl.textContent = state==='connected' ? 'OBD-II LIVE' :
+                    state==='connecting' ? 'CONNECTING…' : 'TAP TO CONNECT';
+}
+
+async function toggleBluetooth() {
+  if (btConnected) { disconnectBT(); return; }
+  await connectBT();
+}
+
+async function connectBT() {
+  if (!navigator.bluetooth) {
+    alert('Web Bluetooth not supported.\nUse Chrome on Android.\nEnable: chrome://flags → Experimental Web Platform features');
+    return;
+  }
+  setConnUI('connecting');
+  stopDemo();
+  try {
+    btDevice = await navigator.bluetooth.requestDevice({
+      filters:[
+        {name:'OBDII'},{name:'OBD2'},{name:'ELM327'},
+        {name:'V-Link'},{namePrefix:'OBD'},
+      ],
+      optionalServices:[NUS_SERVICE, SPP_SERVICE,
+        '0000fff0-0000-1000-8000-00805f9b34fb']
+    });
+    btDevice.addEventListener('gattserverdisconnected', onDisconnected);
+    const server = await btDevice.gatt.connect();
+    let service;
+    try {
+      service  = await server.getPrimaryService(NUS_SERVICE);
+      btChar   = await service.getCharacteristic(NUS_RX);
+      btRxChar = await service.getCharacteristic(NUS_TX);
+      await btRxChar.startNotifications();
+      btRxChar.addEventListener('characteristicvaluechanged', onBTData);
+    } catch(e) {
+      try {
+        service  = await server.getPrimaryService('0000fff0-0000-1000-8000-00805f9b34fb');
+        btChar   = await service.getCharacteristic('0000fff2-0000-1000-8000-00805f9b34fb');
+        btRxChar = await service.getCharacteristic('0000fff1-0000-1000-8000-00805f9b34fb');
+        await btRxChar.startNotifications();
+        btRxChar.addEventListener('characteristicvaluechanged', onBTData);
+      } catch(e2) {
+        throw new Error('No compatible BLE service found on this adapter.');
+      }
+    }
+    btConnected = true;
+    setConnUI('connected');
+    initIdx=0; elmBuf=''; elmInitDone=false;
+    await sendELM(INIT_CMDS[initIdx]);
+  } catch(err) {
+    setConnUI('disconnected');
+    alert('Bluetooth connection failed:\n' + err.message);
+    startDemo();
+  }
+}
+
+function disconnectBT() {
+  if (btDevice && btDevice.gatt.connected) btDevice.gatt.disconnect();
+  btConnected=false; elmInitDone=false;
+  if (pollTimer) { clearInterval(pollTimer); pollTimer=null; }
+  setConnUI('disconnected');
+  startDemo();
+}
+
+function onDisconnected() {
+  btConnected=false; elmInitDone=false;
+  if (pollTimer) { clearInterval(pollTimer); pollTimer=null; }
+  setConnUI('disconnected');
+  startDemo();
+}
+
+const decoder = new TextDecoder();
+
+function onBTData(event) {
+  const chunk = decoder.decode(event.target.value);
+  elmBuf += chunk;
+  if (!elmBuf.includes('>')) return;
+  const response = elmBuf;
+  elmBuf = '';
+  clearTimeout(cmdTimeout);
+  waitingResp = false;
+  if (!elmInitDone) {
+    initIdx++;
+    if (initIdx < INIT_CMDS.length) {
+      setTimeout(() => sendELM(INIT_CMDS[initIdx]), 150);
+    } else {
+      elmInitDone = true;
+      curPID = 0;
+      pollTimer = setInterval(pollNextPID, 400);
+    }
+  } else {
+    const lines = response.split('\r');
+    for (const line of lines) parseELM(line);
+    render(obdState);
+  }
+}
+
+async function sendELM(cmd) {
+  if (!btChar || !btConnected) return;
+  try {
+    waitingResp = true;
+    const enc = new TextEncoder().encode(cmd);
+    await btChar.writeValue(enc);
+    cmdTimeout = setTimeout(() => {
+      if (waitingResp) { waitingResp=false; elmBuf=''; }
+    }, 2000);
+  } catch(e) { console.error('[ELM] Send error:', e); }
+}
+
+function pollNextPID() {
+  if (!btConnected || !elmInitDone || waitingResp) return;
+  sendELM(PIDS[curPID]);
+  curPID = (curPID + 1) % PIDS.length;
+}
+
+// ── BOOT
+startDemo();
+</script>
+</body>
+</html>
