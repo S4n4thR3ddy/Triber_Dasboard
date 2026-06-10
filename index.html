@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#040c18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -379,6 +379,84 @@ body.day .dtc-bar{background:rgba(210,220,235,.95)}
 .modal-close{width:100%;padding:8px;border-radius:8px;cursor:pointer;
   background:rgba(0,191,255,.1);border:1px solid rgba(0,191,255,.3);
   color:var(--cyan);font-family:var(--fm);font-size:10px;letter-spacing:2px}
+
+/* ════════════════════════════════════════════════════
+   RESPONSIVE AUTO-FIT — scales to any device screen
+   Added as overrides; default desktop look unchanged
+════════════════════════════════════════════════════ */
+
+/* Make the whole app fluid-scale using viewport-based root size.
+   Everything in px stays, but we also allow the dashboard to
+   breathe on different aspect ratios. */
+
+/* ── LARGE TABLETS / SMALL LAPTOPS (≤1100px) ── */
+@media (max-width:1100px){
+  .dashboard{gap:8px;padding:8px 10px}
+  .hero-ring-wrap{width:150px;height:150px}
+  .hero-spd{font-size:52px}
+  .val-xl{font-size:40px}
+}
+
+/* ── TABLETS / LARGE PHONES LANDSCAPE (≤900px) ── */
+@media (max-width:900px){
+  .dashboard{grid-template-columns:1fr 1fr;grid-auto-rows:min-content}
+  .col-center{grid-column:1 / -1;order:-1;flex-direction:row;gap:10px}
+  .col-center .tile-hero{flex:1.4}
+  .col-center .tile-fuel{flex:1}
+  .hero-ring-wrap{width:140px;height:140px}
+  .hero-spd{font-size:48px}
+  .val-xl{font-size:38px}
+  .tab-btn{font-size:9px;padding:7px 12px}
+}
+
+/* ── PHONES PORTRAIT (≤640px) ── */
+@media (max-width:640px){
+  html,body{overflow-y:auto;overflow-x:hidden}
+  .dashboard{grid-template-columns:1fr;padding:8px;gap:8px}
+  .col-center{flex-direction:column}
+  .topbar{flex-wrap:wrap;height:auto;padding:8px 12px;gap:6px}
+  .topbar-center{order:3;width:100%;justify-content:center}
+  .time-block{text-align:right}
+  .hero-ring-wrap{width:160px;height:160px}
+  .hero-spd{font-size:56px}
+  .val-xl{font-size:44px}
+  .sg-grid{grid-template-columns:1fr 1fr}
+  .perf-grid,.eco-card-grid,.trip-grid{grid-template-columns:1fr 1fr}
+  /* car image hidden on small portrait to save space */
+  .tile-car{min-height:60px}
+  .car-img{max-width:200px}
+}
+
+/* ── VERY SMALL PHONES (≤400px) ── */
+@media (max-width:400px){
+  .sg-grid{grid-template-columns:1fr}
+  .val-xl{font-size:38px}
+  .hero-spd{font-size:48px}
+  .brand-name{font-size:16px}
+  .tab-btn{font-size:8px;padding:6px 9px}
+}
+
+/* ── LARGE SCREENS / TV / BIG TABLET (≥1500px) ── */
+@media (min-width:1500px){
+  .dashboard{max-width:1600px;margin:0 auto;gap:14px;padding:14px 20px}
+  .hero-ring-wrap{width:200px;height:200px}
+  .hero-spd{font-size:72px}
+  .val-xl{font-size:54px}
+  .tile{border-radius:16px}
+}
+
+/* ── LANDSCAPE PHONE — keep dashboard compact, no scroll ── */
+@media (max-height:500px) and (orientation:landscape){
+  .topbar{height:44px;padding:5px 12px}
+  .tab-bar{font-size:9px}
+  .tab-btn{padding:5px 10px}
+  .dashboard{gap:6px;padding:6px 8px}
+  .hero-ring-wrap{width:120px;height:120px}
+  .hero-spd{font-size:40px}
+  .val-xl{font-size:32px}
+  .tile{padding:8px 10px}
+}
+
 </style>
 </head>
 <body>
