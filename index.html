@@ -401,6 +401,51 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:var(--fd)
 .modal-close{width:100%;padding:8px;border-radius:8px;cursor:pointer;
   background:rgba(0,191,255,.1);border:1px solid rgba(0,191,255,.3);
   color:var(--cyan);font-family:var(--fm);font-size:10px;letter-spacing:2px}
+
+
+/* ══════════════════════════════════════════════════════════
+   LANDSCAPE MODE — bigger gauges, text & car image to fill
+   the extra horizontal space on phones rotated sideways
+   ══════════════════════════════════════════════════════════ */
+@media (orientation:landscape){
+
+  /* give the car column more room, gauges columns slightly less */
+  .dashboard{grid-template-columns:0.85fr 1fr 1.35fr;gap:14px;padding:12px 18px}
+  .tile{padding:clamp(12px,2vh,20px) clamp(14px,2vw,22px)}
+
+  /* speed gauge — was a fixed 170px, now scales with screen height */
+  .hero-ring-wrap{width:clamp(180px,58vh,300px);height:clamp(180px,58vh,300px)}
+  .hero-spd{font-size:clamp(60px,17vh,100px)}
+  .hero-kmh{font-size:clamp(11px,2.8vh,15px);letter-spacing:4px}
+
+  /* RPM gauge */
+  .rpm-gauge-wrap{width:clamp(170px,54vh,280px);height:clamp(170px,54vh,280px);margin:4px auto 14px}
+  .val-xl{font-size:clamp(48px,15vh,84px)}
+  .rpm-zones{font-size:clamp(9px,2.3vh,13px)}
+
+  /* AVG / THROTTLE / ACCEL row */
+  .hero-meta{margin-top:14px;padding-top:12px}
+  .hm-val{font-size:clamp(14px,3.6vh,20px)}
+  .hm-lbl{font-size:clamp(9px,2.2vh,12px)}
+
+  /* tile labels (ENGINE RPM / VEHICLE SPEED / FUEL etc) */
+  .tlabel{font-size:clamp(11px,2.8vh,15px);margin-bottom:10px}
+
+  /* car image — let it grow with the wider column */
+  .car-img,.car-svg{max-width:clamp(340px,40vw,560px)}
+
+  /* sensor mini-tiles (ENG LOAD / FUEL RATE / TRIP / ECONOMY) */
+  .mv{font-size:clamp(15px,3.6vh,20px)}
+  .ml{font-size:clamp(9px,2.2vh,12px)}
+  .dvdr{height:clamp(32px,7vh,48px)}
+
+  /* fuel bar tile */
+  .fuel-pct{font-size:clamp(18px,4.4vh,26px)}
+  .fe,.ff{font-size:clamp(10px,2.4vh,13px)}
+
+  /* shift indicator + 2K eco label */
+  .shift-ind{font-size:clamp(10px,2.4vh,14px);padding:5px 0;margin-top:8px}
+}
 </style>
 </head>
 <body>
