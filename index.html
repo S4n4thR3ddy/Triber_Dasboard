@@ -71,6 +71,22 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:var(--fd)
   color:var(--t2);letter-spacing:3px}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
+/* ── CONNECTION CELEBRATION ── */
+#celebrate-overlay{display:none;position:fixed;inset:0;z-index:998;
+  background:radial-gradient(ellipse at center,rgba(0,50,90,.97),rgba(0,5,15,.99));
+  flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;cursor:pointer;animation:fadeIn .4s ease}
+#celebrate-overlay.show{display:flex}
+.celebrate-car{width:min(78vw,360px);max-width:360px;object-fit:contain;
+  filter:drop-shadow(0 10px 30px rgba(0,229,255,.45));
+  animation:driveIn .8s cubic-bezier(.2,.8,.3,1.1),bounce 2.2s ease-in-out .8s infinite}
+.celebrate-text{font-family:var(--fd);font-size:34px;font-weight:700;color:var(--cyan);
+  letter-spacing:3px;margin-top:22px;text-shadow:0 0 20px rgba(0,229,255,.5)}
+.celebrate-sub{font-family:var(--fm);font-size:15px;color:var(--green);letter-spacing:5px;
+  margin-top:8px;text-transform:uppercase;text-shadow:0 0 15px rgba(0,255,136,.4)}
+@keyframes driveIn{from{transform:translateX(-130%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
 /* ── TAB BAR ── */
 .tab-bar{position:relative;z-index:9;display:flex;
   background:rgba(4,12,24,.95);border-bottom:1px solid var(--bdr);
@@ -389,6 +405,13 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:var(--fd)
 </head>
 <body>
 <div class="bg-grid"></div><div class="bg-glow"></div>
+
+<!-- CONNECTION CELEBRATION -->
+<div id="celebrate-overlay" onclick="this.classList.remove('show')">
+  <img src="triber.png" alt="Triber" class="celebrate-car" onerror="this.style.display='none'">
+  <div class="celebrate-text">🎉 Let's go!</div>
+  <div class="celebrate-sub">Hakuna Matata 🌍</div>
+</div>
 
 <!-- ALERT BANNER -->
 <div id="alert-bar" onclick="this.classList.remove('show')">
@@ -1558,6 +1581,13 @@ const PIDS=['010C\r','010D\r','0105\r','0104\r','010B\r','010F\r','0111\r','012F
 const INIT_CMDS=['ATZ\r','ATE0\r','ATL0\r','ATSP0\r','ATH0\r'];
 let initIdx=0;
 
+function showCelebration(){
+  const ov=document.getElementById('celebrate-overlay');
+  if(!ov) return;
+  ov.classList.add('show');
+  setTimeout(()=>ov.classList.remove('show'),3500);
+}
+
 function setConnUI(s){
   const p=document.getElementById('conn-pill'),l=document.getElementById('conn-label');
   p.className='conn-pill '+s;
@@ -1607,7 +1637,7 @@ function onBTData(event){
   if(!elmInitDone){
     initIdx++;
     if(initIdx<INIT_CMDS.length)setTimeout(()=>sendELM(INIT_CMDS[initIdx]),150);
-    else{elmInitDone=true;curPID=0;pollTimer=setInterval(pollNextPID,400);}
+    else{elmInitDone=true;curPID=0;pollTimer=setInterval(pollNextPID,400);showCelebration();}
   }else{
     // Check for DTC response (Mode 03)
     if(response.includes('43')){parseDTCResponse(response);return;}
