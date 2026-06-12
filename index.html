@@ -71,22 +71,6 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:var(--fd)
   color:var(--t2);letter-spacing:3px}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
-/* ── CONNECTION CELEBRATION ── */
-#celebrate-overlay{display:none;position:fixed;inset:0;z-index:998;
-  background:radial-gradient(ellipse at center,rgba(0,50,90,.97),rgba(0,5,15,.99));
-  flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;cursor:pointer;animation:fadeIn .4s ease}
-#celebrate-overlay.show{display:flex}
-.celebrate-car{width:min(78vw,360px);max-width:360px;object-fit:contain;
-  filter:drop-shadow(0 10px 30px rgba(0,229,255,.45));
-  animation:driveIn .8s cubic-bezier(.2,.8,.3,1.1),bounce 2.2s ease-in-out .8s infinite}
-.celebrate-text{font-family:var(--fd);font-size:34px;font-weight:700;color:var(--cyan);
-  letter-spacing:3px;margin-top:22px;text-shadow:0 0 20px rgba(0,229,255,.5)}
-.celebrate-sub{font-family:var(--fm);font-size:15px;color:var(--green);letter-spacing:5px;
-  margin-top:8px;text-transform:uppercase;text-shadow:0 0 15px rgba(0,255,136,.4)}
-@keyframes driveIn{from{transform:translateX(-130%);opacity:0}to{transform:translateX(0);opacity:1}}
-@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-
 /* ── TAB BAR ── */
 .tab-bar{position:relative;z-index:9;display:flex;
   background:rgba(4,12,24,.95);border-bottom:1px solid var(--bdr);
@@ -213,40 +197,10 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:var(--fd)
 
 /* ── CAR IMAGE ── */
 .tile-car{flex:1;display:flex;align-items:center;justify-content:center;
-  background:transparent;border-color:transparent;box-shadow:none;padding:4px;
-  position:relative;overflow:hidden}
+  background:transparent;border-color:transparent;box-shadow:none;padding:4px}
 .tile-car:hover{border-color:transparent}
-.scene{position:relative;width:100%;height:100%;display:flex;
-  align-items:center;justify-content:center;border-radius:12px;overflow:hidden}
-.car-wrap{position:relative;z-index:3;width:100%;display:flex;
-  justify-content:center;margin-top:9%;
-  transform:rotate(var(--tilt,0deg));transition:transform .4s ease-out}
 .car-img{width:100%;max-width:340px;object-fit:contain;mix-blend-mode:screen;
-  filter:drop-shadow(0 6px 20px rgba(0,0,0,.8)) contrast(1.05);pointer-events:none;
-  --vib-amp:0.4px;--bounce-amp:0px;
-  animation:carMotion .5s ease-in-out infinite}
-@keyframes carMotion{
-  0%  {transform:translate(0,0)}
-  20% {transform:translate(calc(var(--vib-amp)*-1), calc(var(--bounce-amp)*-0.6))}
-  40% {transform:translate(calc(var(--vib-amp)*0.6), calc(var(--bounce-amp)*0.3))}
-  60% {transform:translate(calc(var(--vib-amp)*-0.3), calc(var(--bounce-amp)*-1))}
-  80% {transform:translate(var(--vib-amp), calc(var(--bounce-amp)*0.4))}
-  100%{transform:translate(0,0)}
-}
-.road{position:absolute;left:0;right:0;bottom:9%;height:5px;z-index:2;
-  background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.04));
-  border-top:1px solid rgba(255,255,255,.12)}
-.road-line{position:absolute;inset:0;
-  background-image:repeating-linear-gradient(90deg,var(--cyan2) 0 24px,transparent 24px 80px);
-  background-repeat:repeat-x;
-  animation:scrollBg linear infinite;animation-play-state:paused}
-.trees-far,.trees-near{position:absolute;left:0;right:0;z-index:1;
-  background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='40'><rect x='12' y='26' width='4' height='12' fill='%231a3326'/><polygon points='14,2 2,28 26,28' fill='%23245c3f'/><rect x='54' y='28' width='4' height='10' fill='%231a3326'/><polygon points='56,10 46,30 66,30' fill='%23245c3f'/></svg>");
-  background-repeat:repeat-x;background-position:0 bottom;
-  animation:scrollBg linear infinite;animation-play-state:paused}
-.trees-far{bottom:26%;height:18px;background-size:80px 18px;opacity:.28}
-.trees-near{bottom:16%;height:28px;background-size:80px 28px;opacity:.5}
-@keyframes scrollBg{from{background-position-x:0}to{background-position-x:-80px}}
+  filter:drop-shadow(0 6px 20px rgba(0,0,0,.8)) contrast(1.05);pointer-events:none}
 
 /* ── DTC FOOTER ── */
 .dtc-bar{position:relative;z-index:10;display:flex;align-items:center;gap:12px;
@@ -436,13 +390,6 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:var(--fd)
 <body>
 <div class="bg-grid"></div><div class="bg-glow"></div>
 
-<!-- CONNECTION CELEBRATION -->
-<div id="celebrate-overlay" onclick="this.classList.remove('show')">
-  <img src="triber.png" alt="Triber" class="celebrate-car" onerror="this.style.display='none'">
-  <div class="celebrate-text">🎉 Let's go!</div>
-  <div class="celebrate-sub">Hakuna Matata 🌍</div>
-</div>
-
 <!-- ALERT BANNER -->
 <div id="alert-bar" onclick="this.classList.remove('show')">
   <div class="alert-icon"></div>
@@ -552,16 +499,7 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:var(--fd)
     </div>
   </div>
   <div class="col">
-    <div class="tile tile-car">
-      <div class="scene">
-        <div class="trees-far" id="trees-far"></div>
-        <div class="trees-near" id="trees-near"></div>
-        <div class="road"><div class="road-line" id="road-line"></div></div>
-        <div class="car-wrap" id="car-wrap">
-          <img src="triber.png" alt="Triber" class="car-img" id="car-img" onerror="this.style.display='none'">
-        </div>
-      </div>
-    </div>
+    <div class="tile tile-car"><img src="triber.png" alt="Triber" class="car-img" onerror="this.style.display='none'"></div>
     <div class="tile tile-pair">
       <div class="mini"><i class="fa-solid fa-engine ic-a"></i>
         <div class="mi"><span class="ml">ENG LOAD</span><span id="load" class="mv">--%</span></div></div>
@@ -1387,48 +1325,6 @@ function updateFuelTrims(stft,ltft){
 const ARC_C=565.5;
 const RPM_MAX=7; // ×1000 rpm — Triber 1.0L redline ~6500-7000
 
-function updateCarMotion(rpm,spd,accel){
-  const img=document.getElementById('car-img');
-  const wrap=document.getElementById('car-wrap');
-  if(!img||!wrap) return;
-
-  // Engine vibration — amplitude & speed scale with RPM (0-7 = x1000)
-  const r=Math.min(Math.max(rpm,0),7);
-  const vibAmp=(0.3+ (r/7)*1.8).toFixed(2);          // 0.3px idle -> 2.1px redline
-  const vibDur=Math.max(0.08, 0.55-(r/7)*0.42);      // 0.55s idle -> 0.13s redline
-  img.style.setProperty('--vib-amp', vibAmp+'px');
-  img.style.animationDuration = vibDur+'s';
-
-  // Road bounce — amplitude scales with speed
-  const bounceAmp=Math.min(Math.max(spd,0)/120,1)*2.5; // up to 2.5px at 120km/h
-  img.style.setProperty('--bounce-amp', bounceAmp.toFixed(2)+'px');
-
-  // Acceleration squat/dive — body tilts on accel/brake
-  const a=Math.max(-3,Math.min(3, accel||0));
-  const tilt=(-a*1.6).toFixed(2);                     // accelerate=nose up, brake=nose down
-  wrap.style.setProperty('--tilt', tilt+'deg');
-}
-
-function updateScene(spd){
-  const road=document.getElementById('road-line');
-  const tNear=document.getElementById('trees-near');
-  const tFar=document.getElementById('trees-far');
-  if(!road) return;
-  if(spd<1){
-    road.style.animationPlayState='paused';
-    tNear.style.animationPlayState='paused';
-    tFar.style.animationPlayState='paused';
-  } else {
-    const dur=Math.max(0.25,8/spd);
-    road.style.animationDuration=dur+'s';
-    road.style.animationPlayState='running';
-    tNear.style.animationDuration=(dur*2.5)+'s';
-    tNear.style.animationPlayState='running';
-    tFar.style.animationDuration=(dur*5)+'s';
-    tFar.style.animationPlayState='running';
-  }
-}
-
 function setRpmArc(rpm){
   const arc=document.getElementById('rpm-arc');
   if(!arc) return;
@@ -1516,8 +1412,6 @@ function render(d){
   checkAlerts(d);
   updateTimers(spd,rpm);
   updateShiftIndicator(rpm,spd);
-  updateScene(spd);
-  updateCarMotion(rpm,spd,parseFloat(d.accel||0));
   updateFuelTrims(d.stft!=null?parseFloat(d.stft):null,d.ltft!=null?parseFloat(d.ltft):null);
   updateTrip(spd,parseFloat(d.fuelrate||0),now);
   updateGraphs(spd,rpm,d.coolant||0,d.maf||0,parseFloat(d.o2b1s1||0));
@@ -1664,13 +1558,6 @@ const PIDS=['010C\r','010D\r','0105\r','0104\r','010B\r','010F\r','0111\r','012F
 const INIT_CMDS=['ATZ\r','ATE0\r','ATL0\r','ATSP0\r','ATH0\r'];
 let initIdx=0;
 
-function showCelebration(){
-  const ov=document.getElementById('celebrate-overlay');
-  if(!ov) return;
-  ov.classList.add('show');
-  setTimeout(()=>ov.classList.remove('show'),3500);
-}
-
 function setConnUI(s){
   const p=document.getElementById('conn-pill'),l=document.getElementById('conn-label');
   p.className='conn-pill '+s;
@@ -1720,7 +1607,7 @@ function onBTData(event){
   if(!elmInitDone){
     initIdx++;
     if(initIdx<INIT_CMDS.length)setTimeout(()=>sendELM(INIT_CMDS[initIdx]),150);
-    else{elmInitDone=true;curPID=0;pollTimer=setInterval(pollNextPID,400);showCelebration();}
+    else{elmInitDone=true;curPID=0;pollTimer=setInterval(pollNextPID,400);}
   }else{
     // Check for DTC response (Mode 03)
     if(response.includes('43')){parseDTCResponse(response);return;}
