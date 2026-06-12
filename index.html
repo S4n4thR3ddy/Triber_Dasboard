@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
 <meta name="theme-color" content="#040c18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -19,8 +19,6 @@
   --t1:#e8f4ff;--t2:#6b8faa;
   --fd:'Rajdhani',sans-serif;--fm:'Roboto Mono',monospace;
 }
-body.day{--bg:#e8eef5;--tile:rgba(220,230,245,0.9);--bdr:rgba(0,100,180,0.2);
-  --bdr-hi:rgba(0,100,180,0.5);--t1:#0a1628;--t2:#4a6080;}
 html,body{height:100%;background:var(--bg);color:var(--t1);font-family:var(--fd);
   overflow:hidden;display:flex;flex-direction:column;transition:background .4s,color .4s}
 
@@ -37,7 +35,6 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:var(--fd)
   justify-content:space-between;padding:8px 16px;
   background:rgba(4,12,24,0.92);border-bottom:1px solid var(--bdr);
   flex-shrink:0;height:52px;gap:8px}
-body.day .topbar{background:rgba(220,230,245,0.95)}
 .brand{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .brand-romb{color:var(--cyan);font-size:16px;filter:drop-shadow(0 0 5px var(--cyan))}
 .brand-name{font-size:18px;font-weight:700;letter-spacing:3px}
@@ -61,20 +58,40 @@ body.day .topbar{background:rgba(220,230,245,0.95)}
 .time-date{font-family:var(--fm);font-size:8px;color:var(--t2);letter-spacing:1px}
 
 /* ── ALERT BANNER ── */
-#alert-bar{display:none;position:fixed;top:52px;left:0;right:0;z-index:200;
-  padding:8px 20px;font-family:var(--fm);font-size:11px;letter-spacing:1px;
-  text-align:center;font-weight:500;animation:slideIn .3s ease}
-#alert-bar.show{display:block}
-#alert-bar.warn{background:rgba(255,170,0,.9);color:#000}
-#alert-bar.danger{background:rgba(255,61,61,.9);color:#fff}
-@keyframes slideIn{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+#alert-bar{display:none;position:fixed;inset:0;z-index:999;
+  background:rgba(0,0,0,.94);flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:24px;cursor:pointer;animation:fadeIn .25s ease}
+#alert-bar.show{display:flex}
+#alert-bar .alert-icon{font-size:56px;line-height:1;margin-bottom:16px}
+#alert-bar.warn .alert-icon{color:var(--orange)}
+#alert-bar.danger .alert-icon{color:var(--red)}
+#alert-bar .alert-text{font-family:var(--fm);font-size:22px;font-weight:600;
+  color:#fff;letter-spacing:1px;line-height:1.6;max-width:92%}
+#alert-bar .alert-tap{margin-top:28px;font-family:var(--fm);font-size:10px;
+  color:var(--t2);letter-spacing:3px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── CONNECTION CELEBRATION ── */
+#celebrate-overlay{display:none;position:fixed;inset:0;z-index:998;
+  background:radial-gradient(ellipse at center,rgba(0,50,90,.97),rgba(0,5,15,.99));
+  flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;cursor:pointer;animation:fadeIn .4s ease}
+#celebrate-overlay.show{display:flex}
+.celebrate-car{width:min(78vw,360px);max-width:360px;object-fit:contain;
+  filter:drop-shadow(0 10px 30px rgba(0,229,255,.45));
+  animation:driveIn .8s cubic-bezier(.2,.8,.3,1.1),bounce 2.2s ease-in-out .8s infinite}
+.celebrate-text{font-family:var(--fd);font-size:34px;font-weight:700;color:var(--cyan);
+  letter-spacing:3px;margin-top:22px;text-shadow:0 0 20px rgba(0,229,255,.5)}
+.celebrate-sub{font-family:var(--fm);font-size:15px;color:var(--green);letter-spacing:5px;
+  margin-top:8px;text-transform:uppercase;text-shadow:0 0 15px rgba(0,255,136,.4)}
+@keyframes driveIn{from{transform:translateX(-130%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 
 /* ── TAB BAR ── */
 .tab-bar{position:relative;z-index:9;display:flex;
   background:rgba(4,12,24,.95);border-bottom:1px solid var(--bdr);
   flex-shrink:0;overflow-x:auto;scrollbar-width:none}
 .tab-bar::-webkit-scrollbar{display:none}
-body.day .tab-bar{background:rgba(210,220,235,.95)}
 .tab-btn{font-family:var(--fm);font-size:10px;font-weight:500;letter-spacing:1.5px;
   color:var(--t2);padding:7px 16px;cursor:pointer;border-bottom:2px solid transparent;
   transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;
@@ -103,7 +120,7 @@ body.day .tab-bar{background:rgba(210,220,235,.95)}
 .col{display:flex;flex-direction:column;gap:8px}
 
 /* ── RPM TILE ── */
-.tile-rpm{display:flex;flex-direction:column;flex:1}
+.tile-rpm{display:flex;flex-direction:column;flex:1;justify-content:center}
 .val-row{display:flex;align-items:baseline;gap:6px;margin-bottom:8px}
 .val-xl{font-family:var(--fm);font-size:46px;font-weight:500;line-height:1;
   color:var(--t1);transition:color .3s,text-shadow .3s}
@@ -165,6 +182,13 @@ body.day .tab-bar{background:rgba(210,220,235,.95)}
   filter:drop-shadow(0 0 5px rgba(0,229,255,.5))}
 .ring-arc.ag{stroke:#00ff88;filter:drop-shadow(0 0 5px rgba(0,255,136,.5))}
 .ring-arc.ar{stroke:#ff3d3d;filter:drop-shadow(0 0 5px rgba(255,61,61,.5))}
+.ring-arc.ao{stroke:#ffaa00;filter:drop-shadow(0 0 5px rgba(255,170,0,.5))}
+.ring-zone{fill:none;stroke-width:10;transform:rotate(-90deg);transform-origin:50% 50%;opacity:.55}
+.ring-zone-eco{stroke:#00ff88}
+.ring-zone-red{stroke:rgba(255,61,61,.4)}
+.rpm-gauge-wrap{position:relative;width:clamp(130px,20vw,190px);height:clamp(130px,20vw,190px);
+  flex-shrink:0;margin:4px auto 12px}
+.eco-lbl{color:var(--green)}
 .hero-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .hero-spd{font-family:var(--fm);font-size:60px;font-weight:400;line-height:1;
   color:var(--t1);text-shadow:0 0 20px rgba(0,229,255,.3);transition:color .3s,text-shadow .3s}
@@ -176,7 +200,6 @@ body.day .tab-bar{background:rgba(210,220,235,.95)}
 .hm-item+.hm-item{border-left:1px solid var(--bdr)}
 .hm-lbl{font-size:8px;font-weight:600;letter-spacing:1.5px;color:var(--t2)}
 .hm-val{font-family:var(--fm);font-size:12px;color:var(--cyan)}
-.hm-gear{font-size:18px;font-weight:500;color:var(--green)}
 
 /* ── FUEL ── */
 .tile-fuel{flex-shrink:0;padding:10px 14px}
@@ -190,16 +213,33 @@ body.day .tab-bar{background:rgba(210,220,235,.95)}
 
 /* ── CAR IMAGE ── */
 .tile-car{flex:1;display:flex;align-items:center;justify-content:center;
-  background:transparent;border-color:transparent;box-shadow:none;padding:4px}
+  background:transparent;border-color:transparent;box-shadow:none;padding:4px;
+  position:relative;overflow:hidden}
 .tile-car:hover{border-color:transparent}
+.scene{position:relative;width:100%;height:100%;display:flex;
+  align-items:center;justify-content:center;border-radius:12px;overflow:hidden}
 .car-img{width:100%;max-width:340px;object-fit:contain;mix-blend-mode:screen;
-  filter:drop-shadow(0 6px 20px rgba(0,0,0,.8)) contrast(1.05);pointer-events:none}
+  filter:drop-shadow(0 6px 20px rgba(0,0,0,.8)) contrast(1.05);pointer-events:none;
+  position:relative;z-index:3;margin-top:9%}
+.road{position:absolute;left:0;right:0;bottom:9%;height:5px;z-index:2;
+  background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.04));
+  border-top:1px solid rgba(255,255,255,.12)}
+.road-line{position:absolute;inset:0;
+  background-image:repeating-linear-gradient(90deg,var(--cyan2) 0 24px,transparent 24px 80px);
+  background-repeat:repeat-x;
+  animation:scrollBg linear infinite;animation-play-state:paused}
+.trees-far,.trees-near{position:absolute;left:0;right:0;z-index:1;
+  background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='40'><rect x='12' y='26' width='4' height='12' fill='%231a3326'/><polygon points='14,2 2,28 26,28' fill='%23245c3f'/><rect x='54' y='28' width='4' height='10' fill='%231a3326'/><polygon points='56,10 46,30 66,30' fill='%23245c3f'/></svg>");
+  background-repeat:repeat-x;background-position:0 bottom;
+  animation:scrollBg linear infinite;animation-play-state:paused}
+.trees-far{bottom:26%;height:18px;background-size:80px 18px;opacity:.28}
+.trees-near{bottom:16%;height:28px;background-size:80px 28px;opacity:.5}
+@keyframes scrollBg{from{background-position-x:0}to{background-position-x:-80px}}
 
 /* ── DTC FOOTER ── */
 .dtc-bar{position:relative;z-index:10;display:flex;align-items:center;gap:12px;
   padding:7px 16px;background:rgba(4,12,24,.92);border-top:1px solid var(--bdr);
   flex-shrink:0;height:40px}
-body.day .dtc-bar{background:rgba(210,220,235,.95)}
 .dtc-lbl{font-size:9px;font-weight:600;letter-spacing:2px;color:var(--t2);white-space:nowrap}
 .dtc-codes{flex:1;display:flex;align-items:center;gap:8px;overflow:hidden}
 .dtc-ok{font-family:var(--fm);font-size:10px;color:var(--green)}
@@ -379,91 +419,24 @@ body.day .dtc-bar{background:rgba(210,220,235,.95)}
 .modal-close{width:100%;padding:8px;border-radius:8px;cursor:pointer;
   background:rgba(0,191,255,.1);border:1px solid rgba(0,191,255,.3);
   color:var(--cyan);font-family:var(--fm);font-size:10px;letter-spacing:2px}
-
-/* ════════════════════════════════════════════════════
-   RESPONSIVE AUTO-FIT — scales to any device screen
-   Added as overrides; default desktop look unchanged
-════════════════════════════════════════════════════ */
-
-/* Make the whole app fluid-scale using viewport-based root size.
-   Everything in px stays, but we also allow the dashboard to
-   breathe on different aspect ratios. */
-
-/* ── LARGE TABLETS / SMALL LAPTOPS (≤1100px) ── */
-@media (max-width:1100px){
-  .dashboard{gap:8px;padding:8px 10px}
-  .hero-ring-wrap{width:150px;height:150px}
-  .hero-spd{font-size:52px}
-  .val-xl{font-size:40px}
-}
-
-/* ── TABLETS / LARGE PHONES LANDSCAPE (≤900px) ── */
-@media (max-width:900px){
-  .dashboard{grid-template-columns:1fr 1fr;grid-auto-rows:min-content}
-  .col-center{grid-column:1 / -1;order:-1;flex-direction:row;gap:10px}
-  .col-center .tile-hero{flex:1.4}
-  .col-center .tile-fuel{flex:1}
-  .hero-ring-wrap{width:140px;height:140px}
-  .hero-spd{font-size:48px}
-  .val-xl{font-size:38px}
-  .tab-btn{font-size:9px;padding:7px 12px}
-}
-
-/* ── PHONES PORTRAIT (≤640px) ── */
-@media (max-width:640px){
-  html,body{overflow-y:auto;overflow-x:hidden}
-  .dashboard{grid-template-columns:1fr;padding:8px;gap:8px}
-  .col-center{flex-direction:column}
-  .topbar{flex-wrap:wrap;height:auto;padding:8px 12px;gap:6px}
-  .topbar-center{order:3;width:100%;justify-content:center}
-  .time-block{text-align:right}
-  .hero-ring-wrap{width:160px;height:160px}
-  .hero-spd{font-size:56px}
-  .val-xl{font-size:44px}
-  .sg-grid{grid-template-columns:1fr 1fr}
-  .perf-grid,.eco-card-grid,.trip-grid{grid-template-columns:1fr 1fr}
-  /* car image hidden on small portrait to save space */
-  .tile-car{min-height:60px}
-  .car-img{max-width:200px}
-}
-
-/* ── VERY SMALL PHONES (≤400px) ── */
-@media (max-width:400px){
-  .sg-grid{grid-template-columns:1fr}
-  .val-xl{font-size:38px}
-  .hero-spd{font-size:48px}
-  .brand-name{font-size:16px}
-  .tab-btn{font-size:8px;padding:6px 9px}
-}
-
-/* ── LARGE SCREENS / TV / BIG TABLET (≥1500px) ── */
-@media (min-width:1500px){
-  .dashboard{max-width:1600px;margin:0 auto;gap:14px;padding:14px 20px}
-  .hero-ring-wrap{width:200px;height:200px}
-  .hero-spd{font-size:72px}
-  .val-xl{font-size:54px}
-  .tile{border-radius:16px}
-}
-
-/* ── LANDSCAPE PHONE — keep dashboard compact, no scroll ── */
-@media (max-height:500px) and (orientation:landscape){
-  .topbar{height:44px;padding:5px 12px}
-  .tab-bar{font-size:9px}
-  .tab-btn{padding:5px 10px}
-  .dashboard{gap:6px;padding:6px 8px}
-  .hero-ring-wrap{width:120px;height:120px}
-  .hero-spd{font-size:40px}
-  .val-xl{font-size:32px}
-  .tile{padding:8px 10px}
-}
-
 </style>
 </head>
 <body>
 <div class="bg-grid"></div><div class="bg-glow"></div>
 
+<!-- CONNECTION CELEBRATION -->
+<div id="celebrate-overlay" onclick="this.classList.remove('show')">
+  <img src="triber.png" alt="Triber" class="celebrate-car" onerror="this.style.display='none'">
+  <div class="celebrate-text">🎉 Let's go!</div>
+  <div class="celebrate-sub">Hakuna Matata 🌍</div>
+</div>
+
 <!-- ALERT BANNER -->
-<div id="alert-bar"></div>
+<div id="alert-bar" onclick="this.classList.remove('show')">
+  <div class="alert-icon"></div>
+  <div class="alert-text"></div>
+  <div class="alert-tap">TAP TO DISMISS</div>
+</div>
 
 <!-- DTC MODAL -->
 <div class="modal" id="dtc-modal">
@@ -488,7 +461,6 @@ body.day .dtc-bar{background:rgba(210,220,235,.95)}
       <span class="conn-dot"></span><span id="conn-label">TAP TO CONNECT</span>
     </div>
     <button class="icon-btn" onclick="toggleFullscreen()" title="Fullscreen"><i class="fa-solid fa-expand"></i></button>
-    <button class="icon-btn" onclick="toggleDayNight()" id="theme-btn" title="Day/Night"><i class="fa-solid fa-moon"></i></button>
   </div>
   <div class="topbar-right">
     <div class="time-block">
@@ -516,32 +488,22 @@ body.day .dtc-bar{background:rgba(210,220,235,.95)}
   <div class="col">
     <div class="tile tile-rpm">
       <div class="tlabel"><i class="fa-solid fa-gauge-simple-high"></i>ENGINE RPM</div>
-      <div class="val-row"><span id="rpm" class="val-xl">0.00</span><span class="val-unit">×1000</span></div>
-      <div class="bar-track">
-        <div id="rpm-bar" class="bar-fill b-blue"></div>
-        <div class="bar-marker" style="left:25%"></div><div class="bar-marker" style="left:50%"></div><div class="bar-marker" style="left:75%"></div>
+      <div class="rpm-gauge-wrap">
+        <svg class="hero-ring" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="90" class="ring-track"/>
+          <circle cx="100" cy="100" r="90" class="ring-zone ring-zone-eco" stroke-dasharray="80.8 565.5" stroke-dashoffset="19.8"/>
+          <circle cx="100" cy="100" r="90" class="ring-zone ring-zone-red" stroke-dasharray="121.2 565.5" stroke-dashoffset="262.2"/>
+          <circle id="rpm-arc" cx="100" cy="100" r="90" class="ring-arc" stroke-dasharray="0 565.5" stroke-dashoffset="141"/>
+        </svg>
+        <div class="hero-center">
+          <div id="rpm" class="val-xl">0.00</div>
+          <div class="hero-kmh">×1000 RPM</div>
+        </div>
       </div>
-      <div class="rpm-zones"><span>IDLE</span><span>MID</span><span>PWR</span><span>RED</span></div>
+      <div class="rpm-zones"><span>IDLE</span><span class="eco-lbl">2K ECO</span><span>PWR</span><span>RED</span></div>
       <div id="shift-ind" class="shift-ind"></div>
     </div>
-    <div class="tile tile-triple">
-      <div class="mini"><i class="fa-solid fa-temperature-half ic-a"></i>
-        <div class="mi"><span class="ml">COOLANT</span><span id="coolant" class="mv">--°C</span></div></div>
-      <div class="dvdr"></div>
-      <div class="mini"><i class="fa-solid fa-car-battery ic-g"></i>
-        <div class="mi"><span class="ml">BATTERY</span><span id="battery" class="mv mg">--V</span></div></div>
-      <div class="dvdr"></div>
-      <div class="mini"><i class="fa-solid fa-thermometer-half ic-a"></i>
-        <div class="mi"><span class="ml">INTAKE</span><span id="intake" class="mv">--°C</span></div></div>
     </div>
-    <div class="tile tile-pair">
-      <div class="mini"><i class="fa-solid fa-gauge ic-a"></i>
-        <div class="mi"><span class="ml">MAP PRESS</span><span id="map" class="mv">-- kPa</span></div></div>
-      <div class="dvdr"></div>
-      <div class="mini"><i class="fa-solid fa-tachometer-alt ic-a"></i>
-        <div class="mi"><span class="ml">THROTTLE</span><span id="throttle" class="mv">--%</span></div></div>
-    </div>
-  </div>
   <div class="col col-center">
     <div class="tile tile-hero">
       <div class="hero-lbl">VEHICLE SPEED</div>
@@ -560,7 +522,7 @@ body.day .dtc-bar{background:rgba(210,220,235,.95)}
       </div>
       <div class="hero-meta">
         <div class="hm-item"><span class="hm-lbl">AVG</span><span id="avg" class="hm-val">--</span></div>
-        <div class="hm-item"><span class="hm-lbl">GEAR</span><span id="gear" class="hm-val hm-gear">--</span></div>
+        <div class="hm-item"><span class="hm-lbl">THROTTLE</span><span id="h-throttle" class="hm-val">--%</span></div>
         <div class="hm-item"><span class="hm-lbl">ACCEL</span><span id="accel" class="hm-val">--</span></div>
       </div>
     </div>
@@ -578,7 +540,14 @@ body.day .dtc-bar{background:rgba(210,220,235,.95)}
     </div>
   </div>
   <div class="col">
-    <div class="tile tile-car"><img src="triber.png" alt="Triber" class="car-img" onerror="this.style.display='none'"></div>
+    <div class="tile tile-car">
+      <div class="scene">
+        <div class="trees-far" id="trees-far"></div>
+        <div class="trees-near" id="trees-near"></div>
+        <div class="road"><div class="road-line" id="road-line"></div></div>
+        <img src="triber.png" alt="Triber" class="car-img" onerror="this.style.display='none'">
+      </div>
+    </div>
     <div class="tile tile-pair">
       <div class="mini"><i class="fa-solid fa-engine ic-a"></i>
         <div class="mi"><span class="ml">ENG LOAD</span><span id="load" class="mv">--%</span></div></div>
@@ -859,6 +828,7 @@ body.day .dtc-bar{background:rgba(210,220,235,.95)}
     <div class="alert-item"><div id="al-bat-dot" class="alert-dot ok"></div><span class="alert-item-lbl">Battery Voltage</span><span id="al-bat-val" class="alert-item-val">-- V</span></div>
     <div class="alert-item"><div id="al-rpm-dot" class="alert-dot ok"></div><span class="alert-item-lbl">Engine RPM</span><span id="al-rpm-val" class="alert-item-val">-- rpm</span></div>
     <div class="alert-item"><div id="al-spd-dot" class="alert-dot ok"></div><span class="alert-item-lbl">Speed Limit</span><span id="al-spd-val" class="alert-item-val">--</span></div>
+    <div class="alert-item"><div id="al-eco-dot" class="alert-dot ok"></div><span class="alert-item-lbl">Mileage Zone (2K Rule)</span><span id="al-eco-val" class="alert-item-val">--</span></div>
   </div>
 
   <div class="alert-cfg">
@@ -882,6 +852,10 @@ body.day .dtc-bar{background:rgba(210,220,235,.95)}
     <div class="alert-cfg-row">
       <div><div class="alert-lbl">🚨 New DTC Detected</div><div class="alert-sub">Alert on fault code</div></div>
       <label class="toggle"><input type="checkbox" id="al-dtc-en" checked><span class="toggle-slider"></span></label>
+    </div>
+    <div class="alert-cfg-row">
+      <div><div class="alert-lbl">🎯 Mileage Optimizer (2K Rule)</div><div class="alert-sub">Shift up alert when RPM &gt; 2.8K while cruising — keep RPM 1.5-2.5K for best mileage</div></div>
+      <label class="toggle"><input type="checkbox" id="al-eco-en" checked><span class="toggle-slider"></span></label>
     </div>
     <div class="alert-cfg-row" style="flex-direction:column;align-items:flex-start;gap:6px">
       <div class="alert-lbl">🏎 Speed Limit Alert</div>
@@ -923,13 +897,7 @@ const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
 document.getElementById('pwa-manifest').href=URL.createObjectURL(blob);
 
 // ═══════════════════ THEME ═══════════════════
-let isDaytime=new Date().getHours()>=6&&new Date().getHours()<19;
-function applyTheme(){
-  document.body.classList.toggle('day',isDaytime);
-  document.getElementById('theme-btn').innerHTML=isDaytime?'<i class="fa-solid fa-sun"></i>':'<i class="fa-solid fa-moon"></i>';
-}
-function toggleDayNight(){isDaytime=!isDaytime;applyTheme();}
-applyTheme();
+// Dark mode only — always on
 
 // ═══════════════════ FULLSCREEN ═══════════════════
 function toggleFullscreen(){
@@ -959,15 +927,37 @@ function showAlert(msg,type,key){
   if(alertsShown[key]) return;
   alertsShown[key]=true;
   const bar=document.getElementById('alert-bar');
-  bar.textContent='⚠ '+msg; bar.className='show '+type;
+  bar.querySelector('.alert-icon').textContent=type==='danger'?'\u26D4':'\u26A0\uFE0F';
+  bar.querySelector('.alert-text').textContent=msg;
+  bar.className='show '+type;
   if(alertTimeout) clearTimeout(alertTimeout);
   alertTimeout=setTimeout(()=>bar.classList.remove('show'),5000);
-  // Sound
-  try{const ctx=new AudioContext();const o=ctx.createOscillator();const g=ctx.createGain();
-    o.connect(g);g.connect(ctx.destination);
-    o.frequency.value=type==='danger'?880:660;
-    g.gain.setValueAtTime(0.3,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4);
-    o.start();o.stop(ctx.currentTime+0.4);}catch(e){}
+  playAlertSound(type);
+}
+
+// ── Alert sound — distinct tones for warning vs danger ──
+function playAlertSound(type){
+  try{
+    const ctx=new AudioContext();
+    const beep=(freq,startAt,dur,vol,wave)=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type=wave||'sine'; o.frequency.value=freq;
+      o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(vol, ctx.currentTime+startAt);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+startAt+dur);
+      o.start(ctx.currentTime+startAt); o.stop(ctx.currentTime+startAt+dur);
+    };
+    if(type==='danger'){
+      // urgent triple beep
+      beep(1000,0,0.12,0.3,'square');
+      beep(1000,0.18,0.12,0.3,'square');
+      beep(1000,0.36,0.12,0.3,'square');
+    } else {
+      // two-tone chime
+      beep(880,0,0.15,0.25,'sine');
+      beep(660,0.18,0.25,0.25,'sine');
+    }
+  }catch(e){}
 }
 function clearAlert(key){delete alertsShown[key];}
 
@@ -1016,6 +1006,26 @@ function checkAlerts(d){
     spdEl.className='alert-dot danger';
     showAlert('SPEED LIMIT EXCEEDED: '+spd+' km/h','warn','spd');
   } else {spdEl.className='alert-dot ok';if(spd<spdLimit-5)clearAlert('spd');}
+
+  // Mileage Zone — 2K RPM rule
+  const ecoDot=document.getElementById('al-eco-dot');
+  const ecoVal=document.getElementById('al-eco-val');
+  const ecoEn=document.getElementById('al-eco-en').checked;
+  if(rpm<300){
+    ecoDot.className='alert-dot ok'; ecoVal.textContent='ENGINE OFF';
+    clearAlert('eco');
+  } else if(rpm>=1500&&rpm<=2500){
+    ecoDot.className='alert-dot ok'; ecoVal.textContent='OPTIMAL ('+Math.round(rpm)+' rpm)';
+    clearAlert('eco');
+  } else if(rpm>2500){
+    ecoDot.className='alert-dot warn'; ecoVal.textContent='HIGH ('+Math.round(rpm)+' rpm)';
+    if(rpm>2800 && spd>15 && (d.throttle||0)<45 && ecoEn){
+      showAlert('SHIFT UP for better mileage — '+Math.round(rpm)+' rpm (keep ~2000 rpm)','warn','eco');
+    } else if(rpm<2800) clearAlert('eco');
+  } else {
+    ecoDot.className='alert-dot warn'; ecoVal.textContent='LOW ('+Math.round(rpm)+' rpm)';
+    clearAlert('eco');
+  }
 }
 
 // ═══════════════════ DTC DATABASE ═══════════════════
@@ -1361,6 +1371,39 @@ function updateFuelTrims(stft,ltft){
 
 // ═══════════════════ MAIN RENDER ═══════════════════
 const ARC_C=565.5;
+const RPM_MAX=7; // ×1000 rpm — Triber 1.0L redline ~6500-7000
+
+function updateScene(spd){
+  const road=document.getElementById('road-line');
+  const tNear=document.getElementById('trees-near');
+  const tFar=document.getElementById('trees-far');
+  if(!road) return;
+  if(spd<1){
+    road.style.animationPlayState='paused';
+    tNear.style.animationPlayState='paused';
+    tFar.style.animationPlayState='paused';
+  } else {
+    const dur=Math.max(0.25,8/spd);
+    road.style.animationDuration=dur+'s';
+    road.style.animationPlayState='running';
+    tNear.style.animationDuration=(dur*2.5)+'s';
+    tNear.style.animationPlayState='running';
+    tFar.style.animationDuration=(dur*5)+'s';
+    tFar.style.animationPlayState='running';
+  }
+}
+
+function setRpmArc(rpm){
+  const arc=document.getElementById('rpm-arc');
+  if(!arc) return;
+  const fill=Math.min(Math.max(rpm,0)/RPM_MAX,1);
+  arc.style.strokeDasharray=`${fill*ARC_C} ${ARC_C}`;
+  arc.classList.remove('ag','ar','ao');
+  if(rpm>5.5) arc.classList.add('ar');
+  else if(rpm>=1.5&&rpm<=2.5) arc.classList.add('ag');
+  else if(rpm>3.5) arc.classList.add('ao');
+}
+
 let driveStart=null;
 let lastFuelChartUpdate=0;
 
@@ -1387,25 +1430,22 @@ function render(d){
 
   // RPM
   document.getElementById('rpm').textContent=rpm.toFixed(2);
-  const rpmBar=rpm<2?'b-blue':rpm<3?'b-orange':'b-red';
-  setBar('rpm-bar',(rpm/8)*100,rpmBar);
-  document.getElementById('rpm').className='val-xl'+(rpm>4.5?' cr':rpm>3?' co':'');
+  setRpmArc(rpm);
+  document.getElementById('rpm').className='val-xl'+
+    (rpm>5.5?' cr':rpm>3.5?' co':(rpm>=1.5&&rpm<=2.5)?' cg':'');
 
   // FUEL
   document.getElementById('fuel-pct').textContent=Math.round(fuel)+'%';
   document.getElementById('fuel-pct').style.color=fuel<=15?'var(--red)':fuel<=30?'var(--orange)':fuel<=60?'var(--yellow)':'var(--green)';
   setBar('fuel-bar',fuel,fuel<=15?'b-red':fuel<=30?'b-orange':fuel<=60?'b-yellow':'b-green');
 
-  // BATTERY
-  const batEl=document.getElementById('battery');
-  batEl.textContent=vbat>0?vbat.toFixed(1)+'V':'--V';
-  batEl.style.color=vbat>0&&vbat<11.5?'var(--red)':vbat<12.2&&vbat>5?'var(--orange)':'';
-
   // Simple
   setText('coolant',d.coolant!=null?d.coolant:null,'°C');
   setText('intake',d.intake!=null?d.intake:null,'°C');
   setText('map',d.map!=null?d.map:null,' kPa');
   setText('throttle',d.throttle!=null?d.throttle:null,'%');
+  const ht=document.getElementById('h-throttle');
+  if(ht) ht.textContent=(d.throttle!=null?d.throttle:'--')+'%';
   setText('load',d.load!=null?d.load:null,'%');
   setText('fuelrate',d.fuelrate!=null?parseFloat(d.fuelrate).toFixed(1):null,' L/h');
   setText('trip',d.trip!=null?parseFloat(d.trip).toFixed(1):null,' km');
@@ -1440,6 +1480,7 @@ function render(d){
   checkAlerts(d);
   updateTimers(spd,rpm);
   updateShiftIndicator(rpm,spd);
+  updateScene(spd);
   updateFuelTrims(d.stft!=null?parseFloat(d.stft):null,d.ltft!=null?parseFloat(d.ltft):null);
   updateTrip(spd,parseFloat(d.fuelrate||0),now);
   updateGraphs(spd,rpm,d.coolant||0,d.maf||0,parseFloat(d.o2b1s1||0));
@@ -1586,6 +1627,13 @@ const PIDS=['010C\r','010D\r','0105\r','0104\r','010B\r','010F\r','0111\r','012F
 const INIT_CMDS=['ATZ\r','ATE0\r','ATL0\r','ATSP0\r','ATH0\r'];
 let initIdx=0;
 
+function showCelebration(){
+  const ov=document.getElementById('celebrate-overlay');
+  if(!ov) return;
+  ov.classList.add('show');
+  setTimeout(()=>ov.classList.remove('show'),3500);
+}
+
 function setConnUI(s){
   const p=document.getElementById('conn-pill'),l=document.getElementById('conn-label');
   p.className='conn-pill '+s;
@@ -1635,7 +1683,7 @@ function onBTData(event){
   if(!elmInitDone){
     initIdx++;
     if(initIdx<INIT_CMDS.length)setTimeout(()=>sendELM(INIT_CMDS[initIdx]),150);
-    else{elmInitDone=true;curPID=0;pollTimer=setInterval(pollNextPID,400);}
+    else{elmInitDone=true;curPID=0;pollTimer=setInterval(pollNextPID,400);showCelebration();}
   }else{
     // Check for DTC response (Mode 03)
     if(response.includes('43')){parseDTCResponse(response);return;}
