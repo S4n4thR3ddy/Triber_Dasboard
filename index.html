@@ -218,9 +218,21 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:var(--fd)
 .tile-car:hover{border-color:transparent}
 .scene{position:relative;width:100%;height:100%;display:flex;
   align-items:center;justify-content:center;border-radius:12px;overflow:hidden}
+.car-wrap{position:relative;z-index:3;width:100%;display:flex;
+  justify-content:center;margin-top:9%;
+  transform:rotate(var(--tilt,0deg));transition:transform .4s ease-out}
 .car-img{width:100%;max-width:340px;object-fit:contain;mix-blend-mode:screen;
   filter:drop-shadow(0 6px 20px rgba(0,0,0,.8)) contrast(1.05);pointer-events:none;
-  position:relative;z-index:3;margin-top:9%}
+  --vib-amp:0.4px;--bounce-amp:0px;
+  animation:carMotion .5s ease-in-out infinite}
+@keyframes carMotion{
+  0%  {transform:translate(0,0)}
+  20% {transform:translate(calc(var(--vib-amp)*-1), calc(var(--bounce-amp)*-0.6))}
+  40% {transform:translate(calc(var(--vib-amp)*0.6), calc(var(--bounce-amp)*0.3))}
+  60% {transform:translate(calc(var(--vib-amp)*-0.3), calc(var(--bounce-amp)*-1))}
+  80% {transform:translate(var(--vib-amp), calc(var(--bounce-amp)*0.4))}
+  100%{transform:translate(0,0)}
+}
 .road{position:absolute;left:0;right:0;bottom:9%;height:5px;z-index:2;
   background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.04));
   border-top:1px solid rgba(255,255,255,.12)}
@@ -545,7 +557,9 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:var(--fd)
         <div class="trees-far" id="trees-far"></div>
         <div class="trees-near" id="trees-near"></div>
         <div class="road"><div class="road-line" id="road-line"></div></div>
-        <img src="triber.png" alt="Triber" class="car-img" onerror="this.style.display='none'">
+        <div class="car-wrap" id="car-wrap">
+          <img src="triber.png" alt="Triber" class="car-img" id="car-img" onerror="this.style.display='none'">
+        </div>
       </div>
     </div>
     <div class="tile tile-pair">
@@ -1373,6 +1387,28 @@ function updateFuelTrims(stft,ltft){
 const ARC_C=565.5;
 const RPM_MAX=7; // ×1000 rpm — Triber 1.0L redline ~6500-7000
 
+function updateCarMotion(rpm,spd,accel){
+  const img=document.getElementById('car-img');
+  const wrap=document.getElementById('car-wrap');
+  if(!img||!wrap) return;
+
+  // Engine vibration — amplitude & speed scale with RPM (0-7 = x1000)
+  const r=Math.min(Math.max(rpm,0),7);
+  const vibAmp=(0.3+ (r/7)*1.8).toFixed(2);          // 0.3px idle -> 2.1px redline
+  const vibDur=Math.max(0.08, 0.55-(r/7)*0.42);      // 0.55s idle -> 0.13s redline
+  img.style.setProperty('--vib-amp', vibAmp+'px');
+  img.style.animationDuration = vibDur+'s';
+
+  // Road bounce — amplitude scales with speed
+  const bounceAmp=Math.min(Math.max(spd,0)/120,1)*2.5; // up to 2.5px at 120km/h
+  img.style.setProperty('--bounce-amp', bounceAmp.toFixed(2)+'px');
+
+  // Acceleration squat/dive — body tilts on accel/brake
+  const a=Math.max(-3,Math.min(3, accel||0));
+  const tilt=(-a*1.6).toFixed(2);                     // accelerate=nose up, brake=nose down
+  wrap.style.setProperty('--tilt', tilt+'deg');
+}
+
 function updateScene(spd){
   const road=document.getElementById('road-line');
   const tNear=document.getElementById('trees-near');
@@ -1481,6 +1517,7 @@ function render(d){
   updateTimers(spd,rpm);
   updateShiftIndicator(rpm,spd);
   updateScene(spd);
+  updateCarMotion(rpm,spd,parseFloat(d.accel||0));
   updateFuelTrims(d.stft!=null?parseFloat(d.stft):null,d.ltft!=null?parseFloat(d.ltft):null);
   updateTrip(spd,parseFloat(d.fuelrate||0),now);
   updateGraphs(spd,rpm,d.coolant||0,d.maf||0,parseFloat(d.o2b1s1||0));
