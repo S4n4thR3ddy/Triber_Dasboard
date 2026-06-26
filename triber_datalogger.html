@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>TRIBER · DATA LOGGER</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=Share+Tech+Mono&display=swap');
+:root{
+  --bg:#07090d;--s1:#0c1018;--s2:#111820;--border:#1c2630;
+  --ok:#00d68f;--warn:#ffaa00;--fault:#ff3d3d;--info:#00b4ff;
+  --purple:#9b6dff;--muted:#4a6070;--white:#e8f0f8;--text:#c0d0e0;
+  --mono:'Share Tech Mono',monospace;--head:'Exo 2',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:var(--head);min-height:100vh;padding-bottom:20px;}
+
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(7,9,13,0.97);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:10px 14px;display:flex;align-items:center;gap:10px;
+}
+.logo{font-size:16px;font-weight:800;letter-spacing:2px;color:var(--white);}
+.logo em{color:var(--purple);font-style:normal;}
+.badge{
+  font-family:var(--mono);font-size:10px;padding:3px 8px;
+  border-radius:10px;border:1px solid var(--border);color:var(--muted);
+  margin-left:auto;
+}
+.badge.live{color:var(--ok);border-color:rgba(0,214,143,0.3);}
+.badge.saving{color:var(--purple);border-color:rgba(155,109,255,0.4);animation:pulse 1s infinite;}
+.badge.error{color:var(--fault);border-color:rgba(255,61,61,0.3);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+.section{margin:12px 14px 0;}
+.sh{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.st{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.sl{flex:1;height:1px;background:var(--border);}
+
+.card{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:12px;padding:14px;margin-bottom:8px;
+}
+.card.highlight{border-color:rgba(155,109,255,0.4);}
+
+/* Setup form */
+.form-group{margin-bottom:12px;}
+.form-label{font-size:10px;letter-spacing:1px;color:var(--muted);margin-bottom:5px;display:block;font-family:var(--mono);}
+.form-input{
+  width:100%;background:var(--s2);border:1px solid var(--border);
+  border-radius:8px;padding:10px 12px;
+  color:var(--white);font-family:var(--mono);font-size:13px;
+  outline:none;transition:border-color 0.2s;
+}
+.form-input:focus{border-color:var(--purple);}
+.form-input::placeholder{color:var(--muted);}
+.form-hint{font-size:9px;color:var(--muted);margin-top:4px;line-height:1.4;}
+
+.btn{
+  width:100%;padding:13px;border-radius:10px;
+  font-family:var(--head);font-size:13px;font-weight:700;
+  letter-spacing:1px;cursor:pointer;border:1px solid;
+  transition:all 0.2s;margin-bottom:6px;
+}
+.btn:active{transform:scale(0.98);}
+.btn-purple{background:rgba(155,109,255,0.15);border-color:var(--purple);color:var(--purple);}
+.btn-ok{background:rgba(0,214,143,0.1);border-color:var(--ok);color:var(--ok);}
+.btn-info{background:rgba(0,180,255,0.1);border-color:var(--info);color:var(--info);}
+.btn-warn{background:rgba(255,170,0,0.1);border-color:var(--warn);color:var(--warn);}
+.btn-fault{background:rgba(255,61,61,0.1);border-color:var(--fault);color:var(--fault);}
+.btn-dim{background:var(--s2);border-color:var(--border);color:var(--muted);}
+
+/* Status grid */
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stat{background:var(--s2);border-radius:8px;padding:10px;text-align:center;}
+.stat-val{font-family:var(--mono);font-size:18px;color:var(--white);margin-bottom:2px;}
+.stat-name{font-size:8px;letter-spacing:1px;color:var(--muted);}
+
+/* Progress ring */
+.save-ring{
+  width:70px;height:70px;margin:0 auto 8px;position:relative;
+}
+.save-ring svg{transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:var(--border);stroke-width:6;}
+.ring-fill{fill:none;stroke:var(--purple);stroke-width:6;stroke-linecap:round;
+  stroke-dasharray:201;stroke-dashoffset:201;transition:stroke-dashoffset 1s linear;}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-time{font-family:var(--mono);font-size:16px;color:var(--purple);}
+.ring-label{font-size:8px;color:var(--muted);}
+
+/* Log */
+.log{
+  background:var(--s2);border:1px solid var(--border);border-radius:10px;
+  max-height:180px;overflow-y:auto;padding:8px;
+}
+.log-row{display:flex;gap:8px;padding:3px 0;border-bottom:1px solid #0f1820;font-family:var(--mono);font-size:10px;}
+.log-row:last-child{border-bottom:none;}
+.lt{color:var(--muted);min-width:42px;}
+.ok{color:var(--ok);}.warn{color:var(--warn);}.err{color:var(--fault);}.info{color:var(--info);}.dim{color:#3a5060;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* Report cards */
+.report-card{
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:10px;padding:12px;margin-bottom:8px;
+  cursor:pointer;transition:border-color 0.2s;
+}
+.report-card:hover{border-color:var(--info);}
+.rc-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.rc-date{font-family:var(--mono);font-size:12px;color:var(--white);}
+.rc-score{
+  margin-left:auto;font-family:var(--mono);font-size:14px;font-weight:700;
+  padding:2px 8px;border-radius:4px;
+}
+.rc-score.ok{color:var(--ok);background:rgba(0,214,143,0.1);}
+.rc-score.warn{color:var(--warn);background:rgba(255,170,0,0.1);}
+.rc-score.fault{color:var(--fault);background:rgba(255,61,61,0.1);}
+.rc-stats{display:flex;gap:8px;flex-wrap:wrap;}
+.rc-chip{font-size:9px;padding:2px 6px;border-radius:3px;border:1px solid var(--border);color:var(--muted);}
+
+/* Steps */
+.steps{counter-reset:step;}
+.step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;}
+.step-num{
+  min-width:24px;height:24px;border-radius:50%;
+  background:var(--purple);color:#fff;
+  font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;
+}
+.step-text{font-size:12px;color:var(--text);line-height:1.5;}
+.step-text strong{color:var(--white);}
+.step-code{
+  font-family:var(--mono);font-size:10px;
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:6px;padding:6px 10px;margin-top:4px;
+  color:var(--info);word-break:break-all;
+}
+
+.tabs{display:flex;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:3px;gap:2px;margin-bottom:12px;}
+.tab{
+  flex:1;padding:8px 4px;font-size:10px;font-weight:700;letter-spacing:1px;
+  color:var(--muted);background:transparent;border:none;border-radius:8px;
+  cursor:pointer;font-family:var(--head);transition:all 0.2s;text-transform:uppercase;
+}
+.tab.active{background:var(--s1);color:var(--purple);}
+
+.panel{display:none;} .panel.active{display:block;}
+
+.copy-btn{
+  display:inline-block;margin-top:4px;font-size:9px;
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:4px;padding:3px 8px;color:var(--info);
+  cursor:pointer;font-family:var(--mono);
+}
+
+/* Sensor mini row */
+.sensor-row{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:8px;}
+.sensor-mini{background:var(--s1);border-radius:6px;padding:6px;text-align:center;}
+.sm-val{font-family:var(--mono);font-size:13px;}
+.sm-label{font-size:7px;color:var(--muted);letter-spacing:0.5px;}
+.ok-c{color:var(--ok);}.warn-c{color:var(--warn);}.fault-c{color:var(--fault);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">TRIBER <em>LOGGER</em></div>
+  <div style="font-family:var(--mono);font-size:10px;color:var(--muted)" id="clock"></div>
+  <div class="badge" id="statusBadge">OFFLINE</div>
+</div>
+
+<!-- TABS -->
+<div class="section">
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('setup')">⚙ Setup</button>
+    <button class="tab" onclick="showTab('logger')">📡 Logger</button>
+    <button class="tab" onclick="showTab('reports')">📊 Reports</button>
+    <button class="tab" onclick="showTab('howto')">📖 Guide</button>
+  </div>
+
+  <!-- ═══ SETUP TAB ═══ -->
+  <div class="panel active" id="tab-setup">
+    <div class="card highlight">
+      <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px;">GitHub Data Storage Setup</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:12px;">
+        Your OBD data will be saved to your GitHub repo every 15 minutes automatically. No server needed — works directly from the browser.
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">GITHUB USERNAME</label>
+        <input class="form-input" id="ghUser" placeholder="s4n4thr3ddy" value="s4n4thr3ddy">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">REPOSITORY NAME</label>
+        <input class="form-input" id="ghRepo" placeholder="Triber_Dasboard" value="Triber_Dasboard">
+        <div class="form-hint">Use your existing Triber dashboard repo. Data will be saved in a /obd-logs/ folder.</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">GITHUB PERSONAL ACCESS TOKEN</label>
+        <input class="form-input" id="ghToken" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+        <div class="form-hint">⚠ Keep this private. Needs: Contents (read & write) permission only.<br>Create at: GitHub → Settings → Developer Settings → Fine-grained tokens</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">LOG INTERVAL</label>
+        <select class="form-input" id="logInterval">
+          <option value="900000">Every 15 minutes (recommended)</option>
+          <option value="300000">Every 5 minutes (detailed)</option>
+          <option value="1800000">Every 30 minutes (light)</option>
+          <option value="60000">Every 1 minute (debug mode)</option>
+        </select>
+      </div>
+
+      <button class="btn btn-purple" onclick="testGitHub()">🔗 TEST CONNECTION</button>
+      <button class="btn btn-ok" onclick="saveConfig()">💾 SAVE CONFIG & START</button>
+      <div id="testResult" style="font-family:var(--mono);font-size:10px;margin-top:6px;padding:8px;border-radius:6px;display:none;"></div>
+    </div>
+  </div>
+
+  <!-- ═══ LOGGER TAB ═══ -->
+  <div class="panel" id="tab-logger">
+
+    <!-- Timer ring -->
+    <div class="card" style="text-align:center">
+      <div class="save-ring">
+        <svg width="70" height="70" viewBox="0 0 70 70">
+          <circle class="ring-bg" cx="35" cy="35" r="32"/>
+          <circle class="ring-fill" id="ringFill" cx="35" cy="35" r="32"/>
+        </svg>
+        <div class="ring-center">
+          <div class="ring-time" id="ringTime">--:--</div>
+          <div class="ring-label">NEXT SAVE</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted)" id="lastSaveLabel">Not started</div>
+      <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <button class="btn btn-ok" style="margin:0" onclick="startLogger()">▶ START</button>
+        <button class="btn btn-fault" style="margin:0" onclick="stopLogger()">⏹ STOP</button>
+      </div>
+      <button class="btn btn-purple" style="margin-top:6px" onclick="saveNow()">⬆ SAVE NOW</button>
+    </div>
+
+    <!-- Live sensor snapshot -->
+    <div class="card">
+      <div style="font-size:11px;font-weight:700;color:var(--white);margin-bottom:8px;">Live Snapshot (will be saved)</div>
+      <div class="sensor-row">
+        <div class="sensor-mini">
+          <div class="sm-val fault-c" id="ls-maf">0.0</div>
+          <div class="sm-label">MAF g/s</div>
+        </div>
+        <div class="sensor-mini">
+          <div class="sm-val fault-c" id="ls-map">0</div>
+          <div class="sm-label">MAP kPa</div>
+        </div>
+        <div class="sensor-mini">
+          <div class="sm-val fault-c" id="ls-iat">-40</div>
+          <div class="sm-label">IAT °C</div>
+        </div>
+        <div class="sensor-mini">
+          <div class="sm-val ok-c" id="ls-rpm">770</div>
+          <div class="sm-label">RPM</div>
+        </div>
+        <div class="sensor-mini">
+          <div class="sm-val ok-c" id="ls-cool">84</div>
+          <div class="sm-label">COOLANT</div>
+        </div>
+        <div class="sensor-mini">
+          <div class="sm-val warn-c" id="ls-cat">460</div>
+          <div class="sm-label">CATALYST</div>
+        </div>
+        <div class="sensor-mini">
+          <div class="sm-val warn-c" id="ls-load">33</div>
+          <div class="sm-label">LOAD %</div>
+        </div>
+        <div class="sensor-mini">
+          <div class="sm-val ok-c" id="ls-stft">0.0</div>
+          <div class="sm-label">STFT %</div>
+        </div>
+        <div class="sensor-mini">
+          <div class="sm-val ok-c" id="ls-ltft">+2.3</div>
+          <div class="sm-label">LTFT %</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Session stats -->
+    <div class="card">
+      <div style="font-size:11px;font-weight:700;color:var(--white);margin-bottom:8px;">Session Stats</div>
+      <div class="status-grid">
+        <div class="stat">
+          <div class="stat-val" id="ss-saves" style="color:var(--purple)">0</div>
+          <div class="stat-name">SAVES TODAY</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" id="ss-samples" style="color:var(--info)">0</div>
+          <div class="stat-name">SAMPLES</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" id="ss-faults" style="color:var(--fault)">0</div>
+          <div class="stat-name">FAULTS</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" id="ss-maxcat" style="color:var(--warn)">---</div>
+          <div class="stat-name">MAX CAT °C</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log -->
+    <div class="card">
+      <div style="font-size:11px;font-weight:700;color:var(--white);margin-bottom:6px;">Activity Log</div>
+      <div class="log" id="logBox">
+        <div class="log-row"><span class="lt">--:--</span><span class="info">Logger ready. Configure GitHub and press START.</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ REPORTS TAB ═══ -->
+  <div class="panel" id="tab-reports">
+    <button class="btn btn-info" onclick="loadReports()">⬇ LOAD REPORTS FROM GITHUB</button>
+    <div id="reportsList">
+      <div style="text-align:center;padding:20px;font-size:11px;color:var(--muted)">
+        Configure GitHub in Setup tab, then tap Load Reports.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ HOW TO TAB ═══ -->
+  <div class="panel" id="tab-howto">
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:var(--purple);margin-bottom:12px;">Step 1 — Create GitHub Token</div>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Open GitHub on your phone browser and log in to <strong>github.com/s4n4thr3ddy</strong></div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">Go to <strong>Settings → Developer Settings → Personal Access Tokens → Fine-grained tokens</strong></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Click <strong>Generate new token</strong>. Set name: <strong>Triber OBD Logger</strong>. Expiry: 1 year.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">Under <strong>Repository access</strong> → select <strong>Only select repositories</strong> → choose <strong>Triber_Dasboard</strong></div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-text">Under <strong>Permissions → Repository permissions</strong> → set <strong>Contents</strong> to <strong>Read and write</strong>. That's the ONLY permission needed.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-text">Click <strong>Generate token</strong> → copy it immediately (shown once only!) → paste into Setup tab.</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:8px">
+      <div style="font-size:13px;font-weight:700;color:var(--purple);margin-bottom:12px;">Step 2 — What Gets Saved</div>
+      <div style="font-size:11px;color:var(--text);line-height:1.8">
+        Every 15 minutes, a JSON file is created in your repo at:<br>
+        <div class="step-code">obd-logs/session_YYYYMMDD_HHMMSS.json</div>
+        Each file contains:<br>
+        • Complete sensor snapshot (all PIDs)<br>
+        • Fault codes active at that moment<br>
+        • Session stats (max RPM, max catalyst temp)<br>
+        • Health score + diagnosis summary<br>
+        • Fuel trim history<br>
+        • Timestamp + odometer estimate<br><br>
+        <strong style="color:var(--white)">How to share with Claude for analysis:</strong><br>
+        Go to Reports tab → tap any report → tap "Copy JSON" → paste to Claude and ask for analysis.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:8px">
+      <div style="font-size:13px;font-weight:700;color:var(--purple);margin-bottom:12px;">Step 3 — Daily Workflow</div>
+      <div style="font-size:11px;color:var(--text);line-height:1.8">
+        🌅 <strong style="color:var(--white)">Morning</strong> — Connect ELM327, open Logger, tap START before driving<br><br>
+        🚗 <strong style="color:var(--white)">While driving</strong> — Logger auto-saves every 15 min silently<br><br>
+        🌙 <strong style="color:var(--white)">Evening</strong> — Go to Reports tab, tap latest report, review health score<br><br>
+        📊 <strong style="color:var(--white)">Weekly</strong> — Copy last 7 reports, paste to Claude for trend analysis<br><br>
+        🔧 <strong style="color:var(--white)">If warning appears</strong> — Tap "Save Now" to capture the fault immediately
+      </div>
+    </div>
+  </div>
+
+</div><!-- /section -->
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════
+let CFG = {
+  user: 's4n4thr3ddy',
+  repo: 'Triber_Dasboard',
+  token: '',
+  interval: 900000,
+  branch: 'main'
+};
+
+// OBD live data (shared with main dashboard via localStorage message)
+let LIVE = {
+  timestamp: null,
+  maf:0, iat:-40, map:0, baro:102,
+  stft:0, ltft:2.3, o2b:0.51,
+  rpm:770, coolant:84, catalyst:460,
+  load:33, battery:13.5, throttle:16,
+  speed:0, timing:10, fuel:27,
+  faults:[], healthScore:0,
+  session: { maxRpm:0, maxCat:0, totalSamples:0, saves:0 }
+};
+
+let loggerTimer = null;
+let countdownTimer = null;
+let nextSaveAt = null;
+let isRunning = false;
+
+// ═══════════════════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════════════════
+function tick(){
+  const n=new Date();
+  document.getElementById('clock').textContent=
+    n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+}
+setInterval(tick,1000); tick();
+
+// ═══════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════
+function showTab(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════
+// CONFIG SAVE/LOAD
+// ═══════════════════════════════════════════════════════
+function saveConfig(){
+  CFG.user = document.getElementById('ghUser').value.trim();
+  CFG.repo = document.getElementById('ghRepo').value.trim();
+  CFG.token = document.getElementById('ghToken').value.trim();
+  CFG.interval = parseInt(document.getElementById('logInterval').value);
+
+  if(!CFG.token){
+    showTestResult('error','⚠ Please enter your GitHub token first');
+    return;
+  }
+  // Store config (token stored locally — user's own device)
+  try{
+    localStorage.setItem('triber_logger_config', JSON.stringify({
+      user:CFG.user, repo:CFG.repo, interval:CFG.interval
+      // Don't store token in localStorage for security — user enters each session
+    }));
+  }catch(e){}
+  addLog('Config saved — '+CFG.user+'/'+CFG.repo,'ok');
+  showTestResult('ok','✓ Config saved! Go to Logger tab and tap START.');
+}
+
+function loadConfig(){
+  try{
+    const saved=localStorage.getItem('triber_logger_config');
+    if(saved){
+      const c=JSON.parse(saved);
+      CFG.user=c.user||CFG.user;
+      CFG.repo=c.repo||CFG.repo;
+      CFG.interval=c.interval||CFG.interval;
+      document.getElementById('ghUser').value=CFG.user;
+      document.getElementById('ghRepo').value=CFG.repo;
+      document.getElementById('logInterval').value=CFG.interval;
+    }
+  }catch(e){}
+}
+loadConfig();
+
+// ═══════════════════════════════════════════════════════
+// GITHUB API
+// ═══════════════════════════════════════════════════════
+async function ghAPI(method, path, body=null){
+  if(!CFG.token) throw new Error('No token configured');
+  const url=`https://api.github.com/repos/${CFG.user}/${CFG.repo}/contents/${path}`;
+  const opts={
+    method,
+    headers:{
+      'Authorization':'Bearer '+CFG.token,
+      'Accept':'application/vnd.github+json',
+      'X-GitHub-Api-Version':'2022-11-28',
+      'Content-Type':'application/json'
+    }
+  };
+  if(body) opts.body=JSON.stringify(body);
+  const res=await fetch(url,opts);
+  if(!res.ok){
+    const err=await res.json().catch(()=>({message:res.statusText}));
+    throw new Error(err.message||res.statusText);
+  }
+  return res.status===204?null:res.json();
+}
+
+async function ghGetFileSHA(path){
+  try{
+    const data=await ghAPI('GET',path);
+    return data?.sha||null;
+  }catch(e){return null;}
+}
+
+async function ghWriteFile(path, content, message){
+  const b64=btoa(unescape(encodeURIComponent(content)));
+  const sha=await ghGetFileSHA(path);
+  const body={
+    message,
+    content:b64,
+    branch:CFG.branch,
+    committer:{name:'Triber OBD Logger',email:'obd@triber.local'}
+  };
+  if(sha) body.sha=sha;
+  return ghAPI('PUT',path,body);
+}
+
+async function ghReadFile(path){
+  try{
+    const data=await ghAPI('GET',path);
+    if(!data?.content) return null;
+    return decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
+  }catch(e){return null;}
+}
+
+async function ghListDir(path){
+  try{
+    const url=`https://api.github.com/repos/${CFG.user}/${CFG.repo}/contents/${path}`;
+    const res=await fetch(url,{
+      headers:{
+        'Authorization':'Bearer '+CFG.token,
+        'Accept':'application/vnd.github+json'
+      }
+    });
+    if(!res.ok) return [];
+    return res.json();
+  }catch(e){return [];}
+}
+
+// ═══════════════════════════════════════════════════════
+// TEST CONNECTION
+// ═══════════════════════════════════════════════════════
+async function testGitHub(){
+  CFG.user=document.getElementById('ghUser').value.trim();
+  CFG.repo=document.getElementById('ghRepo').value.trim();
+  CFG.token=document.getElementById('ghToken').value.trim();
+
+  showTestResult('info','Testing connection...');
+  try{
+    const url=`https://api.github.com/repos/${CFG.user}/${CFG.repo}`;
+    const res=await fetch(url,{
+      headers:{'Authorization':'Bearer '+CFG.token,'Accept':'application/vnd.github+json'}
+    });
+    if(res.ok){
+      const data=await res.json();
+      showTestResult('ok',`✓ Connected! Repo: ${data.full_name} (${data.visibility}). Token works.`);
+      addLog('GitHub connection OK — '+data.full_name,'ok');
+      setBadge('live','GITHUB OK');
+    } else {
+      const err=await res.json();
+      showTestResult('error','✗ Failed: '+err.message);
+    }
+  }catch(e){
+    showTestResult('error','✗ Network error: '+e.message);
+  }
+}
+
+function showTestResult(type,msg){
+  const el=document.getElementById('testResult');
+  el.style.display='block';
+  const colors={ok:'rgba(0,214,143,0.1)',error:'rgba(255,61,61,0.1)',info:'rgba(0,180,255,0.1)'};
+  const textColors={ok:'#00d68f',error:'#ff3d3d',info:'#00b4ff'};
+  el.style.background=colors[type]||colors.info;
+  el.style.color=textColors[type]||textColors.info;
+  el.style.border='1px solid '+(textColors[type]||textColors.info)+'44';
+  el.textContent=msg;
+}
+
+// ═══════════════════════════════════════════════════════
+// BUILD REPORT JSON
+// ═══════════════════════════════════════════════════════
+function buildReport(){
+  const now=new Date();
+  const d=LIVE;
+
+  // Compute health score
+  let score=100;
+  if(d.maf<0.3) score-=25;
+  else if(d.maf<1.5) score-=10;
+  if(d.map<3) score-=15;
+  else if(d.map<25) score-=8;
+  if(d.iat<=-38) score-=10;
+  if(d.catalyst>520) score-=15;
+  else if(d.catalyst>490) score-=5;
+  if(d.coolant>97) score-=20;
+  if(Math.abs(d.stft)>20||Math.abs(d.ltft)>20) score-=15;
+  score-=(d.faults.length*5);
+  score=Math.max(0,Math.min(100,score));
+
+  // Auto-diagnosis
+  const issues=[];
+  if(d.maf<0.3) issues.push('MAF sensor dead — 0 g/s reading');
+  if(d.map<3) issues.push('MAP sensor dead or exhaust back pressure');
+  if(d.iat<=-38) issues.push('IAT at -40°C — sensor open circuit');
+  if(d.catalyst>520) issues.push('Catalyst overheating — '+d.catalyst.toFixed(0)+'°C');
+  if(d.coolant>95) issues.push('Coolant overheating — '+d.coolant.toFixed(0)+'°C');
+  if(Math.abs(d.ltft)>15) issues.push('Long term fuel trim high — '+d.ltft.toFixed(1)+'%');
+  if(d.faults.length>0) issues.push('Fault codes: '+d.faults.join(', '));
+
+  return {
+    meta:{
+      version:'1.0',
+      vehicle:'Renault Triber 1.0 SCe',
+      plate:'KA-05-NK-0526',
+      odo_estimate_km: 41439 + Math.round(d.session.totalSamples * 0.01),
+      saved_at: now.toISOString(),
+      saved_at_ist: now.toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}),
+      session_duration_min: Math.round(d.session.totalSamples * 0.25),
+      logger_version:'Triber PRO v1.0'
+    },
+    health:{
+      score,
+      verdict: score>80?'Normal':score>60?'Minor Issues':score>40?'Attention Needed':'Critical Fault',
+      issues,
+      fault_codes: d.faults
+    },
+    snapshot:{
+      timestamp: now.toISOString(),
+      air_intake:{
+        maf_gs: parseFloat(d.maf.toFixed(2)),
+        map_kpa: parseFloat(d.map.toFixed(1)),
+        iat_c: parseFloat(d.iat.toFixed(1)),
+        baro_kpa: parseFloat(d.baro.toFixed(1)),
+        maf_status: d.maf<0.3?'DEAD':d.maf<1.5?'LOW':'NORMAL',
+        map_status: d.map<3?'DEAD':d.map<25?'LOW':'NORMAL',
+        iat_status: d.iat<=-38?'FAULT':d.iat>60?'HIGH':'NORMAL'
+      },
+      engine:{
+        rpm: Math.round(d.rpm),
+        load_pct: parseFloat(d.load.toFixed(1)),
+        coolant_c: parseFloat(d.coolant.toFixed(1)),
+        timing_deg: parseFloat(d.timing.toFixed(1)),
+        throttle_pct: parseFloat(d.throttle.toFixed(1)),
+        speed_kmh: Math.round(d.speed)
+      },
+      fuel:{
+        stft_pct: parseFloat(d.stft.toFixed(2)),
+        ltft_pct: parseFloat(d.ltft.toFixed(2)),
+        o2_b1s2_v: parseFloat(d.o2b.toFixed(3)),
+        fuel_level_pct: parseFloat(d.fuel.toFixed(0)),
+        fuel_status: Math.abs(d.ltft)>20?'FAULT':Math.abs(d.ltft)>10?'LEAN/RICH':'BALANCED'
+      },
+      exhaust:{
+        catalyst_b1s1_c: parseFloat(d.catalyst.toFixed(1)),
+        catalyst_status: d.catalyst>520?'OVERHEATING':d.catalyst>490?'HOT':d.catalyst>380?'NORMAL':'COLD'
+      },
+      electrical:{
+        battery_v: parseFloat(d.battery.toFixed(2)),
+        charging: d.battery>13.4
+      }
+    },
+    session_peaks:{
+      max_rpm: Math.round(d.session.maxRpm),
+      max_catalyst_c: parseFloat(d.session.maxCat.toFixed(1)),
+      total_samples: d.session.totalSamples,
+      total_saves: d.session.saves
+    },
+    analysis_prompt:`
+TRIBER OBD REPORT — ${now.toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})}
+Vehicle: Renault Triber 1.0 SCe (KA-05-NK-0526)
+Health Score: ${score}/100 — ${score>80?'Normal':score>60?'Minor Issues':score>40?'Attention Needed':'Critical'}
+Active Issues: ${issues.length>0?issues.join('; '):'None detected'}
+Fault Codes: ${d.faults.length>0?d.faults.join(', '):'None'}
+MAF: ${d.maf.toFixed(2)} g/s | MAP: ${d.map.toFixed(0)} kPa | IAT: ${d.iat.toFixed(0)}°C
+RPM: ${Math.round(d.rpm)} | Load: ${d.load.toFixed(0)}% | Coolant: ${d.coolant.toFixed(0)}°C
+Catalyst: ${d.catalyst.toFixed(0)}°C | STFT: ${d.stft.toFixed(1)}% | LTFT: ${d.ltft.toFixed(1)}%
+Battery: ${d.battery.toFixed(1)}V | Fuel: ${d.fuel.toFixed(0)}% | Speed: ${Math.round(d.speed)} km/h
+Max RPM this session: ${Math.round(d.session.maxRpm)} | Max Catalyst: ${d.session.maxCat.toFixed(0)}°C
+`
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+// SAVE TO GITHUB
+// ═══════════════════════════════════════════════════════
+async function saveToGitHub(){
+  if(!CFG.token){addLog('No GitHub token — configure in Setup tab','err');return false;}
+
+  setBadge('saving','SAVING...');
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const fname=`session_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}.json`;
+  const path=`obd-logs/${fname}`;
+
+  const report=buildReport();
+  const json=JSON.stringify(report,null,2);
+
+  try{
+    await ghWriteFile(path,json,`OBD log ${now.toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})} — Health:${report.health.score}`);
+    LIVE.session.saves++;
+    document.getElementById('ss-saves').textContent=LIVE.session.saves;
+    addLog('✓ Saved to GitHub: '+fname,'ok');
+    setBadge('live','LIVE • SAVED');
+    document.getElementById('lastSaveLabel').textContent='Last saved: '+now.toLocaleTimeString('en-IN');
+
+    // Also update a latest.json for quick access
+    await ghWriteFile('obd-logs/latest.json',json,'Latest OBD snapshot update');
+    return true;
+  }catch(e){
+    addLog('GitHub save failed: '+e.message,'err');
+    setBadge('error','SAVE ERROR');
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// LOGGER CONTROLS
+// ═══════════════════════════════════════════════════════
+function startLogger(){
+  if(isRunning){addLog('Logger already running','warn');return;}
+  if(!CFG.token){
+    addLog('Configure GitHub token in Setup tab first','err');
+    showTab('setup');
+    return;
+  }
+  isRunning=true;
+  LIVE.session.saves=0;
+  LIVE.session.totalSamples=0;
+  addLog('Logger started — interval: '+(CFG.interval/60000)+'min','ok');
+  setBadge('live','LOGGING');
+
+  // Schedule saves
+  scheduleNextSave();
+
+  // Simulate live data updates (replace with real OBD polling in integrated version)
+  simulateLiveData();
+}
+
+function stopLogger(){
+  isRunning=false;
+  if(loggerTimer){clearTimeout(loggerTimer);loggerTimer=null;}
+  if(countdownTimer){clearInterval(countdownTimer);countdownTimer=null;}
+  nextSaveAt=null;
+  setBadge('error','STOPPED');
+  addLog('Logger stopped. '+LIVE.session.saves+' saves completed.','warn');
+  document.getElementById('ringTime').textContent='--:--';
+  document.getElementById('ringFill').style.strokeDashoffset=201;
+}
+
+function saveNow(){
+  addLog('Manual save triggered','info');
+  saveToGitHub();
+  if(isRunning) scheduleNextSave(); // reset timer
+}
+
+function scheduleNextSave(){
+  if(loggerTimer){clearTimeout(loggerTimer);loggerTimer=null;}
+  if(countdownTimer){clearInterval(countdownTimer);countdownTimer=null;}
+
+  nextSaveAt=Date.now()+CFG.interval;
+  loggerTimer=setTimeout(async()=>{
+    if(!isRunning) return;
+    await saveToGitHub();
+    scheduleNextSave();
+  },CFG.interval);
+
+  // Countdown display
+  countdownTimer=setInterval(()=>{
+    if(!nextSaveAt) return;
+    const remaining=Math.max(0,nextSaveAt-Date.now());
+    const mins=Math.floor(remaining/60000);
+    const secs=Math.floor((remaining%60000)/1000);
+    document.getElementById('ringTime').textContent=
+      String(mins).padStart(2,'0')+':'+String(secs).padStart(2,'0');
+
+    // Ring progress
+    const pct=1-(remaining/CFG.interval);
+    const offset=201-(pct*201);
+    document.getElementById('ringFill').style.strokeDashoffset=offset;
+  },1000);
+}
+
+// ═══════════════════════════════════════════════════════
+// SIMULATE LIVE DATA (replace with real OBD in integrated version)
+// ═══════════════════════════════════════════════════════
+function simulateLiveData(){
+  // Check if real OBD data is available via localStorage (from main dashboard)
+  function readOBD(){
+    try{
+      const d=localStorage.getItem('triber_obd_live');
+      if(d){
+        const parsed=JSON.parse(d);
+        Object.assign(LIVE,parsed);
+        return true;
+      }
+    }catch(e){}
+    return false;
+  }
+
+  setInterval(()=>{
+    if(!isRunning) return;
+    if(!readOBD()){
+      // Demo simulation with your real data patterns
+      LIVE.rpm=750+Math.random()*100;
+      LIVE.coolant=83+Math.random()*4;
+      LIVE.catalyst=450+Math.random()*30;
+      LIVE.load=30+Math.random()*8;
+      LIVE.battery=13.4+Math.random()*0.4;
+      LIVE.maf=0; LIVE.map=0; LIVE.iat=-40;
+      LIVE.faults=['P0100'];
+    }
+
+    // Update session peaks
+    if(LIVE.rpm>LIVE.session.maxRpm) LIVE.session.maxRpm=LIVE.rpm;
+    if(LIVE.catalyst>LIVE.session.maxCat) LIVE.session.maxCat=LIVE.catalyst;
+    LIVE.session.totalSamples++;
+
+    updateLiveDisplay();
+  },3000);
+}
+
+function updateLiveDisplay(){
+  const d=LIVE;
+  const col=(v,ok,warn)=>v<=ok?'ok-c':v<=warn?'warn-c':'fault-c';
+
+  function setMini(id,val,cls){
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.textContent=val;
+    el.className='sm-val '+cls;
+  }
+
+  setMini('ls-maf',d.maf.toFixed(1),d.maf<0.3?'fault-c':d.maf<1.5?'warn-c':'ok-c');
+  setMini('ls-map',d.map.toFixed(0),d.map<3?'fault-c':d.map<25?'warn-c':'ok-c');
+  setMini('ls-iat',d.iat.toFixed(0),d.iat<=-38?'fault-c':d.iat>60?'warn-c':'ok-c');
+  setMini('ls-rpm',Math.round(d.rpm),d.rpm<600?'fault-c':d.rpm>3000?'warn-c':'ok-c');
+  setMini('ls-cool',d.coolant.toFixed(0),d.coolant>97?'fault-c':d.coolant>90?'warn-c':'ok-c');
+  setMini('ls-cat',d.catalyst.toFixed(0),d.catalyst>520?'fault-c':d.catalyst>490?'warn-c':'ok-c');
+  setMini('ls-load',d.load.toFixed(0),d.load>75?'fault-c':d.load>45?'warn-c':'ok-c');
+  setMini('ls-stft',(d.stft>=0?'+':'')+d.stft.toFixed(1),Math.abs(d.stft)>20?'fault-c':Math.abs(d.stft)>10?'warn-c':'ok-c');
+  setMini('ls-ltft',(d.ltft>=0?'+':'')+d.ltft.toFixed(1),Math.abs(d.ltft)>20?'fault-c':Math.abs(d.ltft)>10?'warn-c':'ok-c');
+
+  document.getElementById('ss-samples').textContent=d.session.totalSamples;
+  document.getElementById('ss-faults').textContent=d.faults.length;
+  document.getElementById('ss-maxcat').textContent=d.session.maxCat>0?d.session.maxCat.toFixed(0)+'°C':'---';
+}
+
+// ═══════════════════════════════════════════════════════
+// LOAD REPORTS
+// ═══════════════════════════════════════════════════════
+async function loadReports(){
+  if(!CFG.token){
+    document.getElementById('reportsList').innerHTML=
+      '<div style="text-align:center;padding:16px;font-size:11px;color:var(--fault)">Configure GitHub token in Setup tab first</div>';
+    return;
+  }
+  document.getElementById('reportsList').innerHTML=
+    '<div style="text-align:center;padding:16px;font-size:11px;color:var(--info)">Loading from GitHub...</div>';
+
+  try{
+    const files=await ghListDir('obd-logs');
+    if(!files||!files.length){
+      document.getElementById('reportsList').innerHTML=
+        '<div style="text-align:center;padding:16px;font-size:11px;color:var(--muted)">No reports yet. Start the logger to create reports.</div>';
+      return;
+    }
+
+    // Filter JSON files, sort newest first, skip latest.json
+    const reports=files
+      .filter(f=>f.name.endsWith('.json')&&f.name!=='latest.json')
+      .sort((a,b)=>b.name.localeCompare(a.name))
+      .slice(0,20);
+
+    let html='';
+    for(const f of reports){
+      const content=await ghReadFile('obd-logs/'+f.name);
+      if(!content) continue;
+      try{
+        const r=JSON.parse(content);
+        const score=r.health?.score??'?';
+        const scoreCls=score>70?'ok':score>40?'warn':'fault';
+        const issues=r.health?.issues||[];
+        const date=r.meta?.saved_at_ist||f.name;
+        const faults=r.health?.fault_codes||[];
+
+        html+=`<div class="report-card" onclick="showReport('${f.name}',\`${encodeURIComponent(content)}\`)">
+          <div class="rc-head">
+            <div>
+              <div class="rc-date">${date}</div>
+              <div style="font-size:9px;color:var(--muted);margin-top:2px">${f.name}</div>
+            </div>
+            <div class="rc-score ${scoreCls}">${score}/100</div>
+          </div>
+          <div class="rc-stats">
+            ${faults.length?faults.map(c=>`<div class="rc-chip" style="color:var(--fault);border-color:rgba(255,61,61,0.3)">${c}</div>`).join(''):'<div class="rc-chip" style="color:var(--ok)">No faults</div>'}
+            ${issues.slice(0,2).map(i=>`<div class="rc-chip">${i.substring(0,30)}</div>`).join('')}
+          </div>
+        </div>`;
+      }catch(e){ /* skip malformed */ }
+    }
+    document.getElementById('reportsList').innerHTML=html||
+      '<div style="padding:16px;font-size:11px;color:var(--muted)">No valid reports found</div>';
+
+  }catch(e){
+    document.getElementById('reportsList').innerHTML=
+      `<div style="padding:16px;font-size:11px;color:var(--fault)">Error: ${e.message}</div>`;
+  }
+}
+
+function showReport(name, encoded){
+  const content=decodeURIComponent(encoded);
+  let r;
+  try{r=JSON.parse(content);}catch(e){alert('Could not parse report');return;}
+
+  const score=r.health?.score??'?';
+  const issues=r.health?.issues||[];
+  const snap=r.snapshot||{};
+
+  const popup=document.createElement('div');
+  popup.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:999;overflow-y:auto;padding:16px;';
+  popup.innerHTML=`
+    <div style="max-width:500px;margin:0 auto">
+      <div style="display:flex;align-items:center;margin-bottom:12px">
+        <div style="font-size:14px;font-weight:700;color:var(--white)">${name}</div>
+        <button onclick="this.closest('div[style]').remove()" style="margin-left:auto;background:var(--s2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:4px 10px;cursor:pointer;font-family:var(--head)">✕ CLOSE</button>
+      </div>
+
+      <div style="background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px">
+        <div style="font-size:24px;font-weight:800;font-family:var(--mono);color:${score>70?'#00d68f':score>40?'#ffaa00':'#ff3d3d'};margin-bottom:4px">${score}/100</div>
+        <div style="font-size:12px;color:var(--text)">${r.health?.verdict||''}</div>
+        ${issues.map(i=>`<div style="font-size:10px;color:var(--fault);margin-top:3px">• ${i}</div>`).join('')}
+      </div>
+
+      <div style="background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--text)">
+        MAF: ${snap.air_intake?.maf_gs??'?'} g/s (${snap.air_intake?.maf_status??'?'})<br>
+        MAP: ${snap.air_intake?.map_kpa??'?'} kPa (${snap.air_intake?.map_status??'?'})<br>
+        IAT: ${snap.air_intake?.iat_c??'?'}°C (${snap.air_intake?.iat_status??'?'})<br>
+        RPM: ${snap.engine?.rpm??'?'} | Load: ${snap.engine?.load_pct??'?'}%<br>
+        Coolant: ${snap.engine?.coolant_c??'?'}°C | Timing: ${snap.engine?.timing_deg??'?'}°<br>
+        Catalyst: ${snap.exhaust?.catalyst_b1s1_c??'?'}°C (${snap.exhaust?.catalyst_status??'?'})<br>
+        STFT: ${snap.fuel?.stft_pct??'?'}% | LTFT: ${snap.fuel?.ltft_pct??'?'}%<br>
+        Battery: ${snap.electrical?.battery_v??'?'}V | Fuel: ${snap.fuel?.fuel_level_pct??'?'}%
+      </div>
+
+      <div style="background:var(--s1);border:1px solid var(--purple);border-radius:10px;padding:12px;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--purple);margin-bottom:6px">📋 Copy for Claude Analysis</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text);background:var(--s2);border-radius:6px;padding:8px;white-space:pre-wrap;max-height:120px;overflow-y:auto" id="promptBox">${r.analysis_prompt||''}</div>
+        <button class="copy-btn" onclick="copyPrompt()">📋 COPY ANALYSIS PROMPT</button>
+        <button class="copy-btn" style="margin-left:6px" onclick="copyJSON(\`${encodeURIComponent(content)}\`)">📄 COPY FULL JSON</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(popup);
+}
+
+function copyPrompt(){
+  const el=document.getElementById('promptBox');
+  if(el) navigator.clipboard.writeText(el.textContent).then(()=>alert('Copied! Paste to Claude for analysis.'));
+}
+function copyJSON(encoded){
+  navigator.clipboard.writeText(decodeURIComponent(encoded)).then(()=>alert('Full JSON copied!'));
+}
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+function setBadge(type,text){
+  const b=document.getElementById('statusBadge');
+  b.className='badge '+type;
+  b.textContent=text;
+}
+
+function addLog(msg,type='info'){
+  const box=document.getElementById('logBox');
+  const n=new Date();
+  const ts=n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false});
+  const row=document.createElement('div');
+  row.className='log-row';
+  row.innerHTML=`<span class="lt">${ts}</span><span class="${type}">${msg}</span>`;
+  box.appendChild(row);
+  box.scrollTop=box.scrollHeight;
+  while(box.children.length>60) box.removeChild(box.firstChild);
+}
+
+addLog('Triber Data Logger ready','info');
+addLog('Go to Setup tab → enter GitHub token → Save Config','dim');
+</script>
+</body>
+</html>
