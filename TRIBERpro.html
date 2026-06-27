@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>TRIBER PRO</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;800;900&family=Share+Tech+Mono&display=swap');
+
+/* ═══════════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════════ */
+:root {
+  --ink:    #060a0f;
+  --s1:     #0b1017;
+  --s2:     #101820;
+  --s3:     #161f2a;
+  --rim:    #1d2b38;
+  --dim:    #2a3d50;
+  --muted:  #456070;
+  --text:   #b8ccd8;
+  --white:  #e4f0f8;
+  --cyan:   #00c8e0;
+  --green:  #00d68f;
+  --amber:  #ffaa00;
+  --red:    #ff3d3d;
+  --orange: #ff6b35;
+  --purple: #8b6dff;
+  --mono:   'Share Tech Mono', monospace;
+  --head:   'Exo 2', sans-serif;
+  --r:      10px;
+  --r-sm:   6px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{
+  background:var(--ink);color:var(--text);
+  font-family:var(--head);
+  display:flex;flex-direction:column;
+}
+
+/* ═══════════════════════════════════════════════
+   TOPBAR
+═══════════════════════════════════════════════ */
+#topbar{
+  flex-shrink:0;
+  display:flex;align-items:center;
+  padding:8px 14px;
+  background:var(--s1);
+  border-bottom:1px solid var(--rim);
+  gap:8px;
+  position:relative;z-index:50;
+}
+.logo{
+  font-size:15px;font-weight:900;letter-spacing:3px;
+  color:var(--white);white-space:nowrap;
+}
+.logo sup{
+  font-size:8px;letter-spacing:1px;color:var(--cyan);
+  vertical-align:super;
+}
+#topClock{
+  font-family:var(--mono);font-size:11px;color:var(--muted);
+  margin-left:auto;white-space:nowrap;
+}
+#connBtn{
+  display:flex;align-items:center;gap:5px;
+  background:var(--s3);border:1px solid var(--rim);
+  border-radius:20px;padding:5px 10px;
+  font-family:var(--mono);font-size:10px;color:var(--muted);
+  cursor:pointer;white-space:nowrap;transition:all .2s;
+  flex-shrink:0;
+}
+#connBtn.live{color:var(--green);border-color:rgba(0,214,143,.3);}
+#connBtn.sim{color:var(--amber);border-color:rgba(255,170,0,.3);}
+.cdot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+#connBtn.live .cdot{animation:blink 1.5s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ═══════════════════════════════════════════════
+   ALERT STRIP
+═══════════════════════════════════════════════ */
+#alertStrip{
+  flex-shrink:0;display:none;
+  align-items:center;gap:10px;
+  padding:8px 14px;
+  border-bottom:1px solid;
+  animation:slideIn .3s ease;
+}
+#alertStrip.crit{background:rgba(255,61,61,.1);border-color:rgba(255,61,61,.4);}
+#alertStrip.warn{background:rgba(255,170,0,.1);border-color:rgba(255,170,0,.4);}
+#alertStrip.show{display:flex;}
+@keyframes slideIn{from{transform:translateY(-100%);opacity:0}to{transform:none;opacity:1}}
+#alertIcon{font-size:18px;flex-shrink:0;}
+#alertMsg{flex:1;font-size:11px;line-height:1.4;}
+#alertTitle{font-weight:700;color:var(--white);}
+#alertSub{color:var(--muted);font-size:10px;}
+#alertClose{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 4px;}
+
+/* ═══════════════════════════════════════════════
+   SCROLL AREA
+═══════════════════════════════════════════════ */
+#scroll{flex:1;overflow-y:auto;overflow-x:hidden;}
+#scroll::-webkit-scrollbar{width:2px;}
+#scroll::-webkit-scrollbar-thumb{background:var(--rim);}
+
+/* ═══════════════════════════════════════════════
+   PANELS
+═══════════════════════════════════════════════ */
+.panel{display:none;padding:12px 14px 16px;}
+.panel.active{display:block;}
+
+/* ═══════════════════════════════════════════════
+   BOTTOM NAV
+═══════════════════════════════════════════════ */
+#bnav{
+  flex-shrink:0;
+  display:flex;
+  background:var(--s1);
+  border-top:1px solid var(--rim);
+  padding:4px 0 6px;
+  position:relative;z-index:50;
+}
+.bn{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;gap:2px;
+  padding:6px 2px 2px;
+  background:none;border:none;
+  font-family:var(--head);font-size:8px;font-weight:600;
+  letter-spacing:.5px;text-transform:uppercase;
+  color:var(--muted);cursor:pointer;
+  transition:color .15s;position:relative;
+}
+.bn .bi{font-size:17px;line-height:1;}
+.bn.active{color:var(--cyan);}
+.bn .bb{
+  position:absolute;top:2px;right:calc(50% - 14px);
+  width:6px;height:6px;border-radius:50%;
+  background:var(--red);border:1px solid var(--ink);
+  display:none;
+}
+.bn .bb.on{display:block;}
+
+/* ═══════════════════════════════════════════════
+   CONNECT SCREEN
+═══════════════════════════════════════════════ */
+#connectScreen{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:32px 24px;text-align:center;
+  min-height:calc(100vh - 120px);
+}
+#connectScreen h1{
+  font-size:28px;font-weight:900;letter-spacing:2px;
+  color:var(--white);margin-bottom:8px;
+}
+#connectScreen p{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:28px;}
+.btn{
+  width:100%;padding:13px;border-radius:var(--r);
+  font-family:var(--head);font-size:13px;font-weight:700;
+  letter-spacing:1px;cursor:pointer;border:1px solid;
+  transition:all .15s;margin-bottom:8px;
+}
+.btn:active{transform:scale(.98);}
+.btn-cyan{background:rgba(0,200,224,.12);border-color:var(--cyan);color:var(--cyan);}
+.btn-dim{background:var(--s2);border-color:var(--rim);color:var(--muted);}
+.btn-green{background:rgba(0,214,143,.1);border-color:var(--green);color:var(--green);}
+.btn-red{background:rgba(255,61,61,.1);border-color:var(--red);color:var(--red);}
+.btn-purple{background:rgba(139,109,255,.1);border-color:var(--purple);color:var(--purple);}
+.btn-amber{background:rgba(255,170,0,.1);border-color:var(--amber);color:var(--amber);}
+
+/* ═══════════════════════════════════════════════
+   HEALTH RING (signature element)
+═══════════════════════════════════════════════ */
+.health-ring-wrap{
+  position:relative;width:120px;height:120px;
+  margin:0 auto 4px;flex-shrink:0;
+}
+.health-ring-wrap svg{transform:rotate(-90deg);}
+.hr-bg{fill:none;stroke:var(--s3);stroke-width:10;}
+.hr-fill{
+  fill:none;stroke-width:10;stroke-linecap:round;
+  transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1),stroke .5s;
+}
+.hr-glow{
+  fill:none;stroke-width:14;stroke-linecap:round;
+  opacity:.15;
+  transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1),stroke .5s;
+  filter:blur(3px);
+}
+.hr-center{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.hr-num{
+  font-family:var(--mono);font-size:30px;line-height:1;
+  transition:color .5s;
+}
+.hr-lbl{font-size:8px;letter-spacing:2px;color:var(--muted);margin-top:2px;}
+.hr-wrap-fault .health-ring-wrap{animation:fault-pulse 1.2s ease-in-out infinite;}
+@keyframes fault-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+
+/* ═══════════════════════════════════════════════
+   HERO PANEL (DASH)
+═══════════════════════════════════════════════ */
+.dash-hero{
+  display:flex;align-items:center;gap:14px;
+  margin-bottom:14px;
+}
+.hero-right{flex:1;min-width:0;}
+.hero-verdict{
+  font-size:16px;font-weight:800;color:var(--white);
+  line-height:1.2;margin-bottom:3px;
+}
+.hero-sub{font-size:10px;color:var(--muted);line-height:1.5;margin-bottom:8px;}
+.chip-row{display:flex;flex-wrap:wrap;gap:4px;}
+.chip{
+  font-size:8px;font-weight:700;letter-spacing:.5px;
+  padding:2px 7px;border-radius:3px;border:1px solid;
+}
+.chip-ok{color:var(--green);border-color:rgba(0,214,143,.25);background:rgba(0,214,143,.07);}
+.chip-warn{color:var(--amber);border-color:rgba(255,170,0,.25);background:rgba(255,170,0,.07);}
+.chip-fault{color:var(--red);border-color:rgba(255,61,61,.25);background:rgba(255,61,61,.07);}
+
+/* ═══════════════════════════════════════════════
+   GITHUB SAVE RING
+═══════════════════════════════════════════════ */
+.save-ring-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  background:var(--s2);border:1px solid var(--rim);
+  border-radius:var(--r);padding:10px;
+  margin-bottom:10px;
+}
+.save-ring-row{display:flex;align-items:center;gap:12px;}
+.sr-ring{position:relative;width:56px;height:56px;flex-shrink:0;}
+.sr-ring svg{transform:rotate(-90deg);}
+.sr-bg{fill:none;stroke:var(--rim);stroke-width:5;}
+.sr-fill{fill:none;stroke:var(--purple);stroke-width:5;stroke-linecap:round;
+  stroke-dasharray:160;stroke-dashoffset:160;transition:stroke-dashoffset 1s linear;}
+.sr-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.sr-time{font-family:var(--mono);font-size:11px;color:var(--purple);}
+.sr-lbl{font-size:7px;color:var(--muted);}
+.sr-right{flex:1;}
+.sr-title{font-size:11px;font-weight:700;color:var(--white);margin-bottom:2px;}
+.sr-status{font-family:var(--mono);font-size:9px;color:var(--muted);}
+.sr-btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;}
+
+/* ═══════════════════════════════════════════════
+   SECTION
+═══════════════════════════════════════════════ */
+.sec{margin-bottom:10px;}
+.sec-head{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:6px;
+}
+.sec-title{
+  font-size:9px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:var(--muted);white-space:nowrap;
+}
+.sec-line{flex:1;height:1px;background:var(--rim);}
+.sec-badge{
+  font-size:8px;font-weight:700;letter-spacing:1px;
+  padding:2px 6px;border-radius:3px;white-space:nowrap;
+}
+.sb-ok{color:var(--green);background:rgba(0,214,143,.1);}
+.sb-warn{color:var(--amber);background:rgba(255,170,0,.1);}
+.sb-fault{color:var(--red);background:rgba(255,61,61,.1);}
+.sb-dead{color:var(--orange);background:rgba(255,107,53,.1);}
+
+/* ═══════════════════════════════════════════════
+   CARD
+═══════════════════════════════════════════════ */
+.card{
+  background:var(--s1);border:1px solid var(--rim);
+  border-radius:var(--r);padding:12px;
+  margin-bottom:8px;position:relative;overflow:hidden;
+}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--dim);}
+.card.ok::before{background:var(--green);}
+.card.warn::before{background:var(--amber);}
+.card.fault::before{background:var(--red);}
+.card.dead::before{background:var(--orange);animation:flk .7s infinite;}
+@keyframes flk{0%,100%{opacity:1}50%{opacity:.2}}
+
+.card-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.card-icon{font-size:16px;}
+.card-name{font-size:12px;font-weight:700;color:var(--white);}
+.card-verdict{
+  margin-left:auto;font-size:8px;font-weight:700;letter-spacing:1px;
+  padding:2px 7px;border-radius:3px;border:1px solid;
+}
+.cv-ok{color:var(--green);border-color:rgba(0,214,143,.2);background:rgba(0,214,143,.08);}
+.cv-warn{color:var(--amber);border-color:rgba(255,170,0,.2);background:rgba(255,170,0,.08);}
+.cv-fault{color:var(--red);border-color:rgba(255,61,61,.2);background:rgba(255,61,61,.08);}
+.cv-dead{color:var(--orange);border-color:rgba(255,107,53,.3);background:rgba(255,107,53,.08);}
+
+/* Metric grid */
+.mgs{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.mgs3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;}
+.mg{background:var(--s2);border-radius:var(--r-sm);padding:8px 10px;}
+.mg-lbl{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;font-family:var(--mono);}
+.mg-val{font-family:var(--mono);font-size:20px;line-height:1;color:var(--white);}
+.mg-val.ok{color:var(--green);}
+.mg-val.warn{color:var(--amber);}
+.mg-val.fault{color:var(--red);}
+.mg-val.dead{color:var(--orange);}
+.mg-unit{font-size:9px;color:var(--muted);}
+.mg-note{font-size:9px;margin-top:3px;line-height:1.3;font-family:var(--mono);color:var(--muted);}
+.mg-note.ok{color:var(--green);}
+.mg-note.warn{color:var(--amber);}
+.mg-note.bad{color:var(--red);}
+
+/* Bar */
+.bar-track{height:3px;background:var(--rim);border-radius:2px;margin-top:5px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:2px;transition:width .5s ease,background .3s;}
+
+/* Catalyst meter */
+.cat-grad{
+  height:16px;border-radius:4px;margin:6px 0 2px;
+  background:linear-gradient(to right,#002a1a,#004400,#664400,#882200,#660000);
+  position:relative;overflow:visible;
+}
+.cat-ptr{
+  position:absolute;top:-5px;
+  width:3px;height:26px;background:var(--white);border-radius:2px;
+  box-shadow:0 0 6px rgba(255,255,255,.4);
+  transition:left .8s ease;
+}
+.cat-zones{display:flex;justify-content:space-between;font-family:var(--mono);font-size:7px;color:var(--muted);}
+
+/* Sparkline */
+.spark-box{background:var(--s2);border-radius:var(--r-sm);padding:8px 10px;margin-top:6px;}
+.spark-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.spark-lbl{font-family:var(--mono);font-size:8px;color:var(--muted);}
+.spark-cur{font-family:var(--mono);font-size:10px;}
+canvas.spark{display:block;width:100%;height:36px;}
+
+/* ═══════════════════════════════════════════════
+   SYSTEMS PANEL — big numbers
+═══════════════════════════════════════════════ */
+.big-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;}
+.big-stat{
+  background:var(--s2);border:1px solid var(--rim);
+  border-radius:var(--r-sm);padding:8px 6px;text-align:center;
+}
+.bs-val{font-family:var(--mono);font-size:17px;color:var(--white);}
+.bs-lbl{font-size:7px;letter-spacing:.5px;color:var(--muted);margin-top:2px;}
+
+/* ═══════════════════════════════════════════════
+   DIAGNOSTICS PANEL
+═══════════════════════════════════════════════ */
+.dtc-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+.dtc-item{
+  background:var(--s2);border:1px solid var(--rim);
+  border-left:3px solid var(--red);
+  border-radius:var(--r-sm);padding:10px 12px;
+  display:flex;align-items:flex-start;gap:10px;
+}
+.dtc-item.warn{border-left-color:var(--amber);}
+.dtc-code{font-family:var(--mono);font-size:14px;color:var(--red);min-width:52px;flex-shrink:0;}
+.dtc-item.warn .dtc-code{color:var(--amber);}
+.dtc-name{font-size:11px;font-weight:600;color:var(--white);}
+.dtc-cause{font-size:9px;color:var(--muted);margin-top:2px;line-height:1.4;}
+.trim-bars{margin-top:6px;}
+.trim-row{margin-bottom:8px;}
+.trim-lbl-row{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:3px;}
+.trim-lbl-row span:last-child{font-family:var(--mono);}
+.trim-track{height:6px;background:var(--rim);border-radius:3px;overflow:hidden;position:relative;}
+.trim-fill{height:100%;border-radius:3px;transition:width .5s,background .3s;}
+.trim-zones{display:flex;justify-content:space-between;font-family:var(--mono);font-size:7px;color:var(--dim);margin-top:2px;}
+.o2-spark-box{background:var(--s2);border-radius:var(--r-sm);padding:8px 10px;}
+
+/* ═══════════════════════════════════════════════
+   TRIP PANEL
+═══════════════════════════════════════════════ */
+.log-feed{
+  background:var(--s1);border:1px solid var(--rim);
+  border-radius:var(--r);max-height:170px;overflow-y:auto;
+  padding:6px 8px;
+}
+.log-feed::-webkit-scrollbar{width:2px;}
+.log-feed::-webkit-scrollbar-thumb{background:var(--rim);}
+.lr{display:flex;gap:8px;padding:3px 0;border-bottom:1px solid #0d151e;font-family:var(--mono);font-size:9px;}
+.lr:last-child{border-bottom:none;}
+.lt{color:var(--dim);min-width:40px;}
+.lc-ok{color:var(--green);}
+.lc-warn{color:var(--amber);}
+.lc-err{color:var(--red);}
+.lc-info{color:var(--cyan);}
+.lc-dim{color:var(--muted);}
+
+/* ═══════════════════════════════════════════════
+   SETUP PANEL
+═══════════════════════════════════════════════ */
+.form-lbl{font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:4px;display:block;font-family:var(--mono);}
+.form-inp{
+  width:100%;background:var(--s2);border:1px solid var(--rim);
+  border-radius:var(--r-sm);padding:10px 12px;
+  color:var(--white);font-family:var(--mono);font-size:12px;
+  outline:none;transition:border-color .2s;margin-bottom:10px;
+}
+.form-inp:focus{border-color:var(--cyan);}
+.form-inp::placeholder{color:var(--muted);}
+select.form-inp{cursor:pointer;}
+.form-hint{font-size:9px;color:var(--muted);margin-top:-6px;margin-bottom:10px;line-height:1.5;}
+#ghTestResult{
+  font-family:var(--mono);font-size:10px;
+  padding:8px 10px;border-radius:var(--r-sm);
+  border:1px solid var(--rim);
+  margin-top:6px;display:none;
+}
+
+/* ═══════════════════════════════════════════════
+   PRE-TRIP
+═══════════════════════════════════════════════ */
+.pt-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.pt-item{
+  background:var(--s2);border:1px solid var(--rim);
+  border-radius:var(--r-sm);padding:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.pt-icon{font-size:18px;flex-shrink:0;}
+.pt-label{font-size:10px;font-weight:600;color:var(--white);}
+.pt-status{font-size:9px;margin-top:2px;}
+.pt-ok{color:var(--green);}
+.pt-warn{color:var(--amber);}
+.pt-bad{color:var(--red);}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="logo">TRIBER<sup>PRO</sup></div>
+  <div id="topClock"></div>
+  <div id="connBtn" onclick="handleConnect()">
+    <div class="cdot"></div>
+    <span id="connLabel">CONNECT</span>
+  </div>
+</div>
+
+<!-- ALERT STRIP -->
+<div id="alertStrip">
+  <div id="alertIcon">⚠️</div>
+  <div id="alertMsg">
+    <div id="alertTitle"></div>
+    <div id="alertSub"></div>
+  </div>
+  <button id="alertClose" onclick="closeAlert()">✕</button>
+</div>
+
+<!-- SCROLL AREA -->
+<div id="scroll">
+
+  <!-- ══ CONNECT SCREEN ══ -->
+  <div id="connectScreen">
+    <div style="font-size:48px;margin-bottom:16px">🔌</div>
+    <h1>TRIBER PRO</h1>
+    <p>All-in-one OBD dashboard with live diagnostics,<br>health scoring and GitHub auto-logging.<br><br>Turn ignition ON · Pair ELM327 via Bluetooth first.</p>
+    <button class="btn btn-cyan" onclick="handleConnect()">⚡ CONNECT ELM327</button>
+    <button class="btn btn-dim" onclick="runSim()">▷ Run Demo (Simulation)</button>
+    <div style="font-size:10px;color:var(--muted);margin-top:8px">Configure GitHub auto-save in Setup tab</div>
+  </div>
+
+  <!-- ══ DASH PANEL ══ -->
+  <div class="panel" id="panel-dash">
+
+    <!-- Health hero -->
+    <div class="dash-hero" id="hrWrap">
+      <div class="health-ring-wrap">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle class="hr-bg" cx="60" cy="60" r="50"/>
+          <circle class="hr-glow" id="hrGlow" cx="60" cy="60" r="50"
+            stroke-dasharray="314" stroke-dashoffset="314"/>
+          <circle class="hr-fill" id="hrFill" cx="60" cy="60" r="50"
+            stroke-dasharray="314" stroke-dashoffset="314"/>
+        </svg>
+        <div class="hr-center">
+          <div class="hr-num" id="hrNum">--</div>
+          <div class="hr-lbl">HEALTH</div>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-verdict" id="heroVerdict">Connecting…</div>
+        <div class="hero-sub" id="heroSub">Waiting for OBD data</div>
+        <div class="chip-row" id="heroChips"></div>
+      </div>
+    </div>
+
+    <!-- GitHub save ring -->
+    <div class="save-ring-wrap">
+      <div class="save-ring-row">
+        <div class="sr-ring">
+          <svg width="56" height="56" viewBox="0 0 56 56">
+            <circle class="sr-bg" cx="28" cy="28" r="25"/>
+            <circle class="sr-fill" id="srFill" cx="28" cy="28" r="25"/>
+          </svg>
+          <div class="sr-center">
+            <div class="sr-time" id="srTime">--:--</div>
+            <div class="sr-lbl">SAVE</div>
+          </div>
+        </div>
+        <div class="sr-right">
+          <div class="sr-title">GitHub Auto-Logger</div>
+          <div class="sr-status" id="ghStatus">Not configured · Go to Setup</div>
+          <div style="font-size:9px;color:var(--muted);margin-top:2px" id="lastSavedLabel"></div>
+        </div>
+      </div>
+      <div class="sr-btns">
+        <button class="btn btn-green" style="margin:0;padding:8px;font-size:11px" onclick="startLogger()">▶ START LOGGING</button>
+        <button class="btn btn-purple" style="margin:0;padding:8px;font-size:11px" onclick="saveNow()">⬆ SAVE NOW</button>
+      </div>
+    </div>
+
+    <!-- Exhaust / Catalyst -->
+    <div class="sec">
+      <div class="sec-head">
+        <div class="sec-title">Exhaust & Catalyst</div>
+        <div class="sec-line"></div>
+        <div class="sec-badge sb-warn" id="sb-exhaust">MONITOR</div>
+      </div>
+      <div class="card warn" id="card-exhaust">
+        <div class="card-head">
+          <div class="card-icon">🔥</div>
+          <div class="card-name">Catalyst Temperature</div>
+          <div class="card-verdict cv-warn" id="cv-exhaust">MONITOR</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:9px;color:var(--muted);font-family:var(--mono)">B1S1 TEMP</span>
+          <span style="font-family:var(--mono);font-size:22px" id="catVal">---°C</span>
+        </div>
+        <div class="cat-grad"><div class="cat-ptr" id="catPtr" style="left:0%"></div></div>
+        <div class="cat-zones"><span>COLD</span><span>300°</span><span>450°</span><span>520°</span><span>🔴</span></div>
+        <div class="spark-box">
+          <div class="spark-head">
+            <span class="spark-lbl">TREND — 30 READINGS</span>
+            <span class="spark-cur" id="catTrend" style="color:var(--amber)">→</span>
+          </div>
+          <canvas class="spark" id="catSpark" height="36"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Air Intake -->
+    <div class="sec">
+      <div class="sec-head">
+        <div class="sec-title">Air Intake</div>
+        <div class="sec-line"></div>
+        <div class="sec-badge sb-fault" id="sb-air">FAULT</div>
+      </div>
+      <div class="card fault" id="card-air">
+        <div class="card-head">
+          <div class="card-icon">💨</div>
+          <div class="card-name">MAF · MAP · IAT</div>
+          <div class="card-verdict cv-fault" id="cv-air">FAULT</div>
+        </div>
+        <div class="mgs">
+          <div class="mg">
+            <div class="mg-lbl">MAF FLOW</div>
+            <div class="mg-val dead" id="vMAF">0.0<span class="mg-unit"> g/s</span></div>
+            <div class="mg-note bad" id="nMAF">Dead — no signal</div>
+            <div class="bar-track"><div class="bar-fill" id="bMAF" style="width:0%;background:var(--red)"></div></div>
+          </div>
+          <div class="mg">
+            <div class="mg-lbl">MAP PRESSURE</div>
+            <div class="mg-val fault" id="vMAP">0<span class="mg-unit"> kPa</span></div>
+            <div class="mg-note bad" id="nMAP">Should be 30–45</div>
+            <div class="bar-track"><div class="bar-fill" id="bMAP" style="width:0%;background:var(--red)"></div></div>
+          </div>
+          <div class="mg">
+            <div class="mg-lbl">INTAKE AIR</div>
+            <div class="mg-val dead" id="vIAT">-40<span class="mg-unit"> °C</span></div>
+            <div class="mg-note bad" id="nIAT">-40°C = fault</div>
+          </div>
+          <div class="mg">
+            <div class="mg-lbl">BARO PRESS</div>
+            <div class="mg-val ok" id="vBARO">102<span class="mg-unit"> kPa</span></div>
+            <div class="mg-note ok">Bangalore ✓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Engine -->
+    <div class="sec">
+      <div class="sec-head">
+        <div class="sec-title">Engine Core</div>
+        <div class="sec-line"></div>
+        <div class="sec-badge sb-ok" id="sb-engine">OK</div>
+      </div>
+      <div class="card ok" id="card-engine">
+        <div class="card-head">
+          <div class="card-icon">⚙️</div>
+          <div class="card-name">Engine & Temps</div>
+          <div class="card-verdict cv-ok" id="cv-engine">NORMAL</div>
+        </div>
+        <div class="mgs">
+          <div class="mg">
+            <div class="mg-lbl">ENGINE RPM</div>
+            <div class="mg-val ok" id="vRPM">---<span class="mg-unit"> rpm</span></div>
+            <div class="bar-track"><div class="bar-fill" id="bRPM" style="width:0%;background:var(--green)"></div></div>
+            <div class="mg-note ok" id="nRPM">Idle OK</div>
+          </div>
+          <div class="mg">
+            <div class="mg-lbl">ENGINE LOAD</div>
+            <div class="mg-val ok" id="vLOAD">--<span class="mg-unit"> %</span></div>
+            <div class="bar-track"><div class="bar-fill" id="bLOAD" style="width:0%;background:var(--green)"></div></div>
+            <div class="mg-note ok" id="nLOAD">Normal</div>
+          </div>
+          <div class="mg">
+            <div class="mg-lbl">COOLANT</div>
+            <div class="mg-val ok" id="vCOOL">--<span class="mg-unit"> °C</span></div>
+            <div class="mg-note ok" id="nCOOL">Normal</div>
+          </div>
+          <div class="mg">
+            <div class="mg-lbl">TIMING ADV</div>
+            <div class="mg-val ok" id="vTIM">--<span class="mg-unit"> °</span></div>
+            <div class="mg-note ok" id="nTIM">Normal</div>
+          </div>
+        </div>
+        <div class="spark-box">
+          <div class="spark-head">
+            <span class="spark-lbl">RPM HISTORY</span>
+            <span class="spark-cur ok" id="rpmTrend">Stable</span>
+          </div>
+          <canvas class="spark" id="rpmSpark" height="36"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fuel -->
+    <div class="sec">
+      <div class="sec-head">
+        <div class="sec-title">Fuel System</div>
+        <div class="sec-line"></div>
+        <div class="sec-badge sb-ok" id="sb-fuel">OK</div>
+      </div>
+      <div class="card ok" id="card-fuel">
+        <div class="card-head">
+          <div class="card-icon">⛽</div>
+          <div class="card-name">Fuel Trims & O2</div>
+          <div class="card-verdict cv-ok" id="cv-fuel">BALANCED</div>
+        </div>
+        <div class="mgs">
+          <div class="mg">
+            <div class="mg-lbl">SHORT TRIM</div>
+            <div class="mg-val ok" id="vSTFT">0.0<span class="mg-unit"> %</span></div>
+            <div class="bar-track"><div class="bar-fill" id="bSTFT" style="width:50%;background:var(--green)"></div></div>
+            <div class="mg-note ok" id="nSTFT">Normal</div>
+          </div>
+          <div class="mg">
+            <div class="mg-lbl">LONG TRIM</div>
+            <div class="mg-val ok" id="vLTFT">+2.3<span class="mg-unit"> %</span></div>
+            <div class="bar-track"><div class="bar-fill" id="bLTFT" style="width:54%;background:var(--green)"></div></div>
+            <div class="mg-note ok" id="nLTFT">Normal</div>
+          </div>
+          <div class="mg">
+            <div class="mg-lbl">FUEL LEVEL</div>
+            <div class="mg-val warn" id="vFUEL">--<span class="mg-unit"> %</span></div>
+            <div class="bar-track"><div class="bar-fill" id="bFUEL" style="width:0%;background:var(--amber)"></div></div>
+            <div class="mg-note warn" id="nFUEL">Check</div>
+          </div>
+          <div class="mg">
+            <div class="mg-lbl">O2 B1S2</div>
+            <div class="mg-val ok" id="vO2">--<span class="mg-unit"> V</span></div>
+            <div class="mg-note ok" id="nO2">Active</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Electrical -->
+    <div class="sec">
+      <div class="sec-head">
+        <div class="sec-title">Electrical</div>
+        <div class="sec-line"></div>
+        <div class="sec-badge sb-ok" id="sb-elec">OK</div>
+      </div>
+      <div class="card ok" id="card-elec">
+        <div class="card-head">
+          <div class="card-icon">⚡</div>
+          <div class="card-name">Battery & Alternator</div>
+          <div class="card-verdict cv-ok" id="cv-elec">CHARGING</div>
+        </div>
+        <div class="mgs">
+          <div class="mg">
+            <div class="mg-lbl">BATTERY V</div>
+            <div class="mg-val ok" id="vBAT">--<span class="mg-unit"> V</span></div>
+            <div class="bar-track"><div class="bar-fill" id="bBAT" style="width:0%;background:var(--green)"></div></div>
+            <div class="mg-note ok" id="nBAT">Normal</div>
+          </div>
+          <div class="mg">
+            <div class="mg-lbl">THROTTLE</div>
+            <div class="mg-val ok" id="vTHR">--<span class="mg-unit"> %</span></div>
+            <div class="bar-track"><div class="bar-fill" id="bTHR" style="width:0%;background:var(--cyan)"></div></div>
+            <div class="mg-note" id="nTHR">Idle</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /dash -->
+
+  <!-- ══ SYSTEMS PANEL ══ -->
+  <div class="panel" id="panel-sys">
+    <div class="sec"><div class="sec-head"><div class="sec-title">All Live Sensors</div><div class="sec-line"></div></div>
+      <div class="big-grid">
+        <div class="big-stat"><div class="bs-val" id="s-rpm" style="color:var(--green)">---</div><div class="bs-lbl">RPM</div></div>
+        <div class="big-stat"><div class="bs-val" id="s-spd" style="color:var(--cyan)">---</div><div class="bs-lbl">km/h</div></div>
+        <div class="big-stat"><div class="bs-val" id="s-load" style="color:var(--amber)">--</div><div class="bs-lbl">LOAD %</div></div>
+        <div class="big-stat"><div class="bs-val" id="s-cool" style="color:var(--green)">--</div><div class="bs-lbl">COOL °C</div></div>
+        <div class="big-stat"><div class="bs-val" id="s-cat" style="color:var(--amber)">---</div><div class="bs-lbl">CAT °C</div></div>
+        <div class="big-stat"><div class="bs-val" id="s-iat" style="color:var(--red)">--</div><div class="bs-lbl">IAT °C</div></div>
+        <div class="big-stat"><div class="bs-val" id="s-maf" style="color:var(--red)">0.0</div><div class="bs-lbl">MAF g/s</div></div>
+        <div class="big-stat"><div class="bs-val" id="s-map" style="color:var(--red)">0</div><div class="bs-lbl">MAP kPa</div></div>
+        <div class="big-stat"><div class="bs-val" id="s-bat" style="color:var(--green)">--</div><div class="bs-lbl">BATT V</div></div>
+        <div class="big-stat"><div class="bs-val" id="s-stft" style="color:var(--green)">0.0</div><div class="bs-lbl">STFT %</div></div>
+        <div class="big-stat"><div class="bs-val" id="s-ltft" style="color:var(--green)">+2.3</div><div class="bs-lbl">LTFT %</div></div>
+        <div class="big-stat"><div class="bs-val" id="s-tim" style="color:var(--green)">--</div><div class="bs-lbl">TIMING °</div></div>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-head"><div class="sec-title">Temperature Trends</div><div class="sec-line"></div></div>
+      <div class="card ok">
+        <div class="spark-box" style="margin:0 0 6px">
+          <div class="spark-head"><span class="spark-lbl">COOLANT °C</span><span class="spark-cur ok" id="coolTrend">--</span></div>
+          <canvas class="spark" id="coolSpark" height="36"></canvas>
+        </div>
+        <div class="spark-box">
+          <div class="spark-head"><span class="spark-lbl">ENGINE LOAD %</span><span class="spark-cur" id="loadTrend" style="color:var(--amber)">--</span></div>
+          <canvas class="spark" id="loadSpark" height="36"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ DIAG PANEL ══ -->
+  <div class="panel" id="panel-diag">
+    <div class="sec"><div class="sec-head"><div class="sec-title">Fault Codes</div><div class="sec-line"></div></div>
+      <div class="dtc-list" id="dtcList">
+        <div style="text-align:center;padding:16px;font-size:11px;color:var(--muted)">Tap SCAN to read fault codes</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn btn-cyan" style="margin:0" onclick="scanFaults()">🔍 SCAN</button>
+        <button class="btn btn-red" style="margin:0" onclick="clearFaults()">✕ CLEAR</button>
+      </div>
+    </div>
+
+    <div class="sec" style="margin-top:10px"><div class="sec-head"><div class="sec-title">Root Cause</div><div class="sec-line"></div></div>
+      <div class="card" style="border-color:rgba(0,200,224,.2)" id="rcaCard">
+        <div style="font-size:11px;color:var(--muted);line-height:1.6" id="rcaText">Scan fault codes to generate analysis.</div>
+      </div>
+    </div>
+
+    <div class="sec"><div class="sec-head"><div class="sec-title">Fuel Trim Health</div><div class="sec-line"></div></div>
+      <div class="card ok">
+        <div class="trim-bars">
+          <div class="trim-row">
+            <div class="trim-lbl-row"><span>SHORT TERM TRIM</span><span id="d-stft">0.0%</span></div>
+            <div class="trim-track"><div class="trim-fill" id="d-stft-bar" style="width:50%;background:var(--green)"></div></div>
+            <div class="trim-zones"><span>-25% RICH</span><span>NORMAL</span><span>LEAN +25%</span></div>
+          </div>
+          <div class="trim-row">
+            <div class="trim-lbl-row"><span>LONG TERM TRIM</span><span id="d-ltft">+2.3%</span></div>
+            <div class="trim-track"><div class="trim-fill" id="d-ltft-bar" style="width:54%;background:var(--green)"></div></div>
+            <div class="trim-zones"><span>-25% RICH</span><span>NORMAL</span><span>LEAN +25%</span></div>
+          </div>
+        </div>
+        <div class="o2-spark-box" style="margin-top:8px">
+          <div class="spark-head"><span class="spark-lbl">O2 B1S2 VOLTAGE</span><span class="spark-cur ok" id="o2Trend">Active</span></div>
+          <canvas class="spark" id="o2Spark" height="40"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TRIP PANEL ══ -->
+  <div class="panel" id="panel-trip">
+    <div class="sec"><div class="sec-head"><div class="sec-title">Session</div><div class="sec-line"></div></div>
+      <div class="big-grid" style="margin-bottom:8px">
+        <div class="big-stat"><div class="bs-val" id="t-dist" style="color:var(--cyan)">0.0</div><div class="bs-lbl">km TRIP</div></div>
+        <div class="big-stat"><div class="bs-val" id="t-time" style="color:var(--cyan)">00:00</div><div class="bs-lbl">DRIVE MIN</div></div>
+        <div class="big-stat"><div class="bs-val" id="t-spd" style="color:var(--green)">--</div><div class="bs-lbl">AVG km/h</div></div>
+        <div class="big-stat"><div class="bs-val" id="t-mrpm" style="color:var(--amber)">--</div><div class="bs-lbl">MAX RPM</div></div>
+        <div class="big-stat"><div class="bs-val" id="t-mcat" style="color:var(--amber)">--</div><div class="bs-lbl">MAX CAT°C</div></div>
+        <div class="big-stat"><div class="bs-val" id="t-gear" style="color:var(--green)">N</div><div class="bs-lbl">EST GEAR</div></div>
+      </div>
+      <div class="card ok">
+        <div class="spark-box" style="margin:0">
+          <div class="spark-head"><span class="spark-lbl">SPEED km/h</span><span class="spark-cur" id="spdCur" style="color:var(--cyan)">0</span></div>
+          <canvas class="spark" id="spdSpark" height="44"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-head"><div class="sec-title">Event Log</div><div class="sec-line"></div></div>
+      <div class="log-feed" id="logFeed">
+        <div class="lr"><span class="lt">--:--</span><span class="lc-info">TRIBER PRO ready</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SETUP PANEL ══ -->
+  <div class="panel" id="panel-setup">
+    <div class="sec"><div class="sec-head"><div class="sec-title">GitHub Auto-Save</div><div class="sec-line"></div></div>
+      <div class="card">
+        <label class="form-lbl">GITHUB USERNAME</label>
+        <input class="form-inp" id="ghUser" value="s4n4thr3ddy" placeholder="s4n4thr3ddy">
+        <label class="form-lbl">REPOSITORY NAME</label>
+        <input class="form-inp" id="ghRepo" value="Triber_Dasboard" placeholder="Triber_Dasboard">
+        <div class="form-hint">Logs saved to /obd-logs/ folder in your repo</div>
+        <label class="form-lbl">PERSONAL ACCESS TOKEN</label>
+        <input class="form-inp" id="ghToken" type="password" placeholder="ghp_xxxxxxxxxxxx">
+        <div class="form-hint">GitHub → Settings → Developer → Fine-grained tokens<br>Permission needed: Contents → Read & Write only</div>
+        <label class="form-lbl">SAVE INTERVAL</label>
+        <select class="form-inp" id="ghInterval">
+          <option value="900000">Every 15 minutes</option>
+          <option value="300000">Every 5 minutes</option>
+          <option value="1800000">Every 30 minutes</option>
+          <option value="60000">Every 1 minute (debug)</option>
+        </select>
+        <button class="btn btn-cyan" onclick="testGH()">🔗 TEST CONNECTION</button>
+        <button class="btn btn-green" onclick="saveGHConfig()">💾 SAVE & ACTIVATE</button>
+        <div id="ghTestResult"></div>
+      </div>
+    </div>
+
+    <div class="sec"><div class="sec-head"><div class="sec-title">Pre-Trip Check</div><div class="sec-line"></div></div>
+      <div class="pt-grid" id="ptGrid">
+        <div class="pt-item"><div class="pt-icon">💨</div><div><div class="pt-label">MAF Sensor</div><div class="pt-status pt-bad" id="pt-maf">Not checked</div></div></div>
+        <div class="pt-item"><div class="pt-icon">🌡️</div><div><div class="pt-label">Coolant</div><div class="pt-status pt-bad" id="pt-cool">Not checked</div></div></div>
+        <div class="pt-item"><div class="pt-icon">🔥</div><div><div class="pt-label">Catalyst</div><div class="pt-status pt-bad" id="pt-cat">Not checked</div></div></div>
+        <div class="pt-item"><div class="pt-icon">⛽</div><div><div class="pt-label">Fuel Trims</div><div class="pt-status pt-bad" id="pt-trim">Not checked</div></div></div>
+        <div class="pt-item"><div class="pt-icon">⚡</div><div><div class="pt-label">Battery</div><div class="pt-status pt-bad" id="pt-bat">Not checked</div></div></div>
+        <div class="pt-item"><div class="pt-icon">🔍</div><div><div class="pt-label">Fault Codes</div><div class="pt-status pt-bad" id="pt-dtc">Not scanned</div></div></div>
+      </div>
+      <button class="btn btn-green" style="margin-top:8px" onclick="runPretrip()">▶ RUN PRE-TRIP CHECK</button>
+    </div>
+
+    <div class="sec"><div class="sec-head"><div class="sec-title">Maintenance</div><div class="sec-line"></div></div>
+      <div class="card">
+        <div style="font-size:11px;color:var(--text);line-height:1.9">
+          🔵 <strong style="color:var(--white)">Air Filter</strong> — Replace every 15,000 km<br>
+          🔵 <strong style="color:var(--white)">MAF Sensor</strong> — Clean every 20,000 km<br>
+          🔵 <strong style="color:var(--white)">Spark Plugs</strong> — Replace every 30,000 km (NGK LKR8AI)<br>
+          🔵 <strong style="color:var(--white)">Catalyst</strong> — Inspect if temp &gt; 500°C consistently<br>
+          🔵 <strong style="color:var(--white)">OBD Scan</strong> — Every Sunday morning<br>
+          🔴 <strong style="color:var(--white)">GoBoost Device</strong> — NEVER use again
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /scroll -->
+
+<!-- BOTTOM NAV -->
+<div id="bnav">
+  <button class="bn active" id="bn-dash" onclick="nav('dash')"><span class="bi">🏥</span>Dash<div class="bb" id="bb-dash"></div></button>
+  <button class="bn" id="bn-sys" onclick="nav('sys')"><span class="bi">⚙️</span>Sensors</button>
+  <button class="bn" id="bn-diag" onclick="nav('diag')"><span class="bi">🔍</span>Diagnose<div class="bb" id="bb-diag"></div></button>
+  <button class="bn" id="bn-trip" onclick="nav('trip')"><span class="bi">🛣️</span>Trip</button>
+  <button class="bn" id="bn-setup" onclick="nav('setup')"><span class="bi">⚙</span>Setup</button>
+</div>
+
+<script>
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+const D = {
+  maf:0,iat:-40,map:0,baro:102,
+  stft:0,ltft:2.3,o2b:.51,
+  rpm:770,coolant:84,catalyst:460,
+  load:33,battery:13.5,throttle:16,
+  speed:0,timing:10,fuel:27
+};
+const H = {cat:[],rpm:[],cool:[],load:[],spd:[],o2:[]};
+const SES = {maxRpm:0,maxCat:0,samples:0,saves:0,startTime:Date.now()};
+const FAULTS = [];
+let connected=false, simMode=false;
+let obdPort=null, obdReader=null, obdWriter=null;
+
+// GitHub
+let GH = {user:'s4n4thr3ddy',repo:'Triber_Dasboard',token:'',interval:900000};
+let ghTimer=null, ghCountdown=null, ghNextAt=null, ghRunning=false;
+
+// ═══════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════
+setInterval(()=>{
+  const n=new Date();
+  document.getElementById('topClock').textContent=
+    n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+},1000);
+
+// ═══════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════
+const TABS=['dash','sys','diag','trip','setup'];
+function nav(id){
+  TABS.forEach(t=>{
+    document.getElementById('panel-'+t)?.classList.remove('active');
+    document.getElementById('bn-'+t)?.classList.remove('active');
+  });
+  document.getElementById('panel-'+id)?.classList.add('active');
+  document.getElementById('bn-'+id)?.classList.add('active');
+  document.getElementById('scroll').scrollTop=0;
+}
+
+// ═══════════════════════════════════
+// CONNECTION
+// ═══════════════════════════════════
+async function handleConnect(){
+  if(connected){return;}
+  try{
+    if(navigator.serial){await connectSerial();}
+    else throw new Error('no serial');
+  }catch(e){
+    if(confirm('No ELM327 detected.\nRun SIMULATION with your real session data?')) runSim();
+  }
+}
+
+async function connectSerial(){
+  obdPort=await navigator.serial.requestPort();
+  await obdPort.open({baudRate:38400});
+  obdWriter=obdPort.writable.getWriter();
+  const dec=new TextDecoderStream();
+  obdPort.readable.pipeTo(dec.writable);
+  obdReader=dec.readable.getReader();
+  log('ELM327 serial connected','ok');
+  await initELM();
+}
+
+async function initELM(){
+  log('Initialising ELM327…','info');
+  await cmd('ATZ'); await sleep(1000);
+  await cmd('ATE0'); await cmd('ATL0');
+  await cmd('ATS0'); await cmd('ATSP0');
+  setConn(true,false);
+  log('OBD-II ready — polling started','ok');
+  startPoll();
+  await scanFaults();
+}
+
+async function cmd(c){
+  if(!obdWriter) return '';
+  await obdWriter.write(new TextEncoder().encode(c+'\r'));
+  return await readResp();
+}
+async function readResp(ms=2000){
+  let out='';
+  try{while(true){
+    const {value,done}=await Promise.race([
+      obdReader.read(),
+      new Promise(r=>setTimeout(()=>r({value:'',done:true}),ms))
+    ]);
+    if(done||!value) break;
+    out+=value;
+    if(out.includes('>')) break;
+  }}catch(e){}
+  return out.trim();
+}
+
+// ═══════════════════════════════════
+// OBD POLLING
+// ═══════════════════════════════════
+const PIDS=[
+  ['10','maf'],['0F','iat'],['0B','map'],['33','baro'],
+  ['06','stft'],['07','ltft'],['15','o2b'],
+  ['0C','rpm'],['05','coolant'],['0E','catalyst_unused'],
+  ['04','load'],['11','throttle'],['0D','speed'],['0E','timing'],['2F','fuel']
+];
+let pollRun=false;
+async function startPoll(){
+  pollRun=true; let i=0;
+  while(pollRun&&connected){
+    const[pid,key]=PIDS[i%PIDS.length];
+    const raw=await cmd('01'+pid);
+    const val=parseOBD(raw,pid);
+    if(val!==null){D[key]=val;process(key,val);}
+    i++; await sleep(150);
+  }
+}
+function parseOBD(raw,pid){
+  if(!raw||/NO DATA|ERROR|\?/.test(raw)) return null;
+  const h=raw.replace(/[^0-9A-Fa-f]/g,' ').trim().split(/\s+/).filter(Boolean);
+  if(h.length<2) return null;
+  const A=parseInt(h[h.length-2],16),B=parseInt(h[h.length-1],16);
+  switch(pid.toUpperCase()){
+    case '0C':return((A*256)+B)/4;
+    case '0D':return A;
+    case '05':return A-40;
+    case '0F':return A-40;
+    case '0B':return A;
+    case '11':return(A/255)*100;
+    case '04':return(A/255)*100;
+    case '06':return(A-128)*(100/128);
+    case '07':return(A-128)*(100/128);
+    case '10':return((A*256)+B)/100;
+    case '14':return A/200;
+    case '15':return A/200;
+    case '0E':return(A/2)-64;
+    case '33':return A;
+    case '2F':return(A/255)*100;
+  } return null;
+}
+
+// ═══════════════════════════════════
+// PROCESS DATA → UPDATE UI
+// ═══════════════════════════════════
+const push=(arr,v,n=30)=>{arr.push(v);if(arr.length>n)arr.shift();};
+function process(key,val){
+  switch(key){
+    case 'maf': updMAF(val); break;
+    case 'iat': updIAT(val); break;
+    case 'map': updMAP(val); break;
+    case 'rpm':
+      push(H.rpm,val);
+      if(val>SES.maxRpm)SES.maxRpm=val;
+      updRPM(val);
+      spark('rpmSpark',H.rpm,'#00d68f',0,4000);
+      setEl('s-rpm',Math.round(val));
+      setEl('t-mrpm',Math.round(SES.maxRpm));
+      setEl('rpmTrend',Math.round(val)+' rpm');
+      break;
+    case 'coolant':
+      push(H.cool,val);
+      updCoolant(val);
+      spark('coolSpark',H.cool,'#00b4ff',60,110);
+      setEl('s-cool',val.toFixed(0));
+      setEl('coolTrend',val.toFixed(0)+'°C');
+      break;
+    case 'catalyst_unused':// handled via timing PID clash — skip
+      break;
+    case 'load':
+      push(H.load,val);
+      updLoad(val);
+      spark('loadSpark',H.load,'#ffaa00',0,100);
+      setEl('s-load',val.toFixed(0));
+      setEl('loadTrend',val.toFixed(0)+'%');
+      break;
+    case 'stft': updTrim('stft',val); break;
+    case 'ltft': updTrim('ltft',val); break;
+    case 'o2b':
+      push(H.o2,val,50);
+      setVal('vO2',val.toFixed(3),'V');
+      setEl('nO2','Downstream active');
+      spark('o2Spark',H.o2,'#8b6dff',0,1);
+      setEl('o2Trend',val.toFixed(3)+'V');
+      setEl('s-ltft',D.ltft.toFixed(1));
+      break;
+    case 'battery': updBat(val); break;
+    case 'throttle':
+      setVal('vTHR',val.toFixed(0),'%');
+      bar('bTHR',val,100,'#00c8e0');
+      break;
+    case 'speed':
+      push(H.spd,val);
+      spark('spdSpark',H.spd,'#00c8e0',0,120);
+      setEl('spdCur',val.toFixed(0));
+      setEl('s-spd',val.toFixed(0));
+      setEl('t-spd',val.toFixed(0));
+      updGear(val,D.rpm);
+      break;
+    case 'timing':
+      setVal('vTIM',(val>=0?'+':'')+val.toFixed(1),'°');
+      const tok=val>5&&val<45;
+      el('vTIM').className='mg-val '+(tok?'ok':val<0?'fault':'warn');
+      setEl('nTIM',tok?'✓ Normal':val<0?'⚠ Retarded — ECU confused':'High');
+      setElClass('nTIM',tok?'mg-note ok':val<0?'mg-note bad':'mg-note warn');
+      setEl('s-tim',val.toFixed(0));
+      break;
+    case 'fuel':
+      setVal('vFUEL',val.toFixed(0),'%');
+      bar('bFUEL',val,100,val<15?'#ff3d3d':val<30?'#ffaa00':'#00d68f');
+      setElClass('nFUEL',val<15?'mg-note bad':val<30?'mg-note warn':'mg-note ok',
+        val<15?'⚠ Very low!':val<30?'Getting low':'✓ OK');
+      break;
+    case 'baro':
+      setVal('vBARO',val.toFixed(0),'kPa');
+      break;
+  }
+  SES.samples++;
+  setEl('t-dist',(SES.samples*.01).toFixed(1));
+  const mins=Math.round((Date.now()-SES.startTime)/60000);
+  setEl('t-time',mins.toString());
+  computeHealth();
+  updPretrip();
+  // Share live data via localStorage for external tools
+  try{localStorage.setItem('triber_obd_live',JSON.stringify(D));}catch(e){}
+}
+
+// ═══════════════════════════════════
+// SENSOR UPDATERS
+// ═══════════════════════════════════
+function updMAF(v){
+  const dead=v<.2,low=v<1.5,ok=v>=1.5;
+  setVal('vMAF',v.toFixed(1),'g/s');
+  el('vMAF').className='mg-val '+(dead?'dead':ok?'ok':'warn');
+  bar('bMAF',Math.min(v,20),20,dead?'#ff6b35':ok?'#00d68f':'#ffaa00');
+  setElClass('nMAF',dead?'mg-note bad':ok?'mg-note ok':'mg-note warn',
+    dead?'DEAD — no signal (2–5 g/s normal)':ok?'✓ Normal airflow':'Low — check connector');
+  setEl('s-maf',v.toFixed(1));
+  updAirSys();
+}
+function updIAT(v){
+  const dead=v<=-38,ok=v>10&&v<65;
+  setVal('vIAT',v.toFixed(0),'°C');
+  el('vIAT').className='mg-val '+(dead?'dead':ok?'ok':'warn');
+  setElClass('nIAT',dead?'mg-note bad':ok?'mg-note ok':'mg-note warn',
+    dead?'-40°C = sensor fault / open circuit':ok?'✓ Normal IAT':'Check air intake');
+  setEl('s-iat',v.toFixed(0));
+}
+function updMAP(v){
+  const dead=v<3,ok=v>=25&&v<=70;
+  setVal('vMAP',v.toFixed(0),'kPa');
+  el('vMAP').className='mg-val '+(dead?'fault':ok?'ok':'warn');
+  bar('bMAP',Math.min(v,80),80,dead?'#ff3d3d':ok?'#00d68f':'#ffaa00');
+  setElClass('nMAP',dead?'mg-note bad':ok?'mg-note ok':'mg-note warn',
+    dead?'0 kPa = exhaust blocked or dead sensor':ok?'✓ Normal MAP':'Check vacuum/exhaust');
+  setEl('s-map',v.toFixed(0));
+  updAirSys();
+}
+function updAirSys(){
+  const faults=[D.maf<.2,D.map<3,D.iat<=-38].filter(Boolean).length;
+  const card=el('card-air'),cv=el('cv-air'),sb=el('sb-air');
+  if(faults===3){
+    card.className='card dead';cv.className='card-verdict cv-dead';cv.textContent='ALL DEAD';
+    sb.className='sec-badge sb-dead';sb.textContent='CRITICAL';
+    alert('crit','🚨','Air System Failure','MAF + MAP + IAT all showing fault values');
+    el('bb-diag').classList.add('on');
+  }else if(faults>0){
+    card.className='card fault';cv.className='card-verdict cv-fault';cv.textContent='FAULT';
+    sb.className='sec-badge sb-fault';sb.textContent='FAULT';
+  }else{
+    card.className='card ok';cv.className='card-verdict cv-ok';cv.textContent='NORMAL';
+    sb.className='sec-badge sb-ok';sb.textContent='OK';
+  }
+}
+function updRPM(v){
+  const r=Math.round(v),ok=r>=600&&r<=1000;
+  setVal('vRPM',r,'rpm');
+  bar('bRPM',Math.min(v,4000),4000,'#00d68f');
+  el('vRPM').className='mg-val '+(ok?'ok':r<600?'fault':'warn');
+  setElClass('nRPM',ok?'mg-note ok':r<600?'mg-note bad':'mg-note warn',
+    ok?'✓ Normal idle':r<600?'⚠ Stall risk':'High idle');
+}
+function updCoolant(v){
+  const ok=v>=80&&v<=97,hot=v>97;
+  setVal('vCOOL',v.toFixed(0),'°C');
+  el('vCOOL').className='mg-val '+(hot?'fault':ok?'ok':'warn');
+  setElClass('nCOOL',hot?'mg-note bad':ok?'mg-note ok':'mg-note warn',
+    hot?'⚠ OVERHEATING — stop engine!':ok?'✓ Normal':'Warming up…');
+  if(hot) alert('crit','🌡️','Overheating!','Coolant '+v.toFixed(0)+'°C — pull over now');
+}
+function updCatalyst(v){
+  push(H.cat,v);
+  if(v>SES.maxCat)SES.maxCat=v;
+  el('catVal').textContent=v.toFixed(0)+'°C';
+  const pct=Math.max(0,Math.min(100,(v-200)/5));
+  el('catPtr').style.left=pct+'%';
+  const t=H.cat,trend=t.length>3?t[t.length-1]-t[0]:0;
+  const te=el('catTrend');
+  if(trend>8){te.textContent='↑ Rising';te.style.color='var(--red)';}
+  else if(trend<-8){te.textContent='↓ Cooling';te.style.color='var(--green)';}
+  else{te.textContent='→ Stable';te.style.color='var(--amber)';}
+  spark('catSpark',H.cat,'#ff8c00',300,680);
+  setEl('s-cat',v.toFixed(0));
+  setEl('t-mcat',SES.maxCat.toFixed(0));
+  const card=el('card-exhaust'),cv=el('cv-exhaust'),sb=el('sb-exhaust');
+  if(v>520){
+    card.className='card fault';cv.className='card-verdict cv-fault';cv.textContent='TOO HOT';
+    sb.className='sec-badge sb-fault';sb.textContent='HOT';
+    alert('warn','🔥','Catalyst Hot',v.toFixed(0)+'°C — ease off throttle');
+  }else if(v>=380){
+    card.className='card ok';cv.className='card-verdict cv-ok';cv.textContent='NORMAL';
+    sb.className='sec-badge sb-ok';sb.textContent='OK';
+  }else{
+    card.className='card warn';cv.className='card-verdict cv-warn';cv.textContent='COLD';
+    sb.className='sec-badge sb-warn';sb.textContent='COLD';
+  }
+}
+function updLoad(v){
+  const ok=v<45,high=v>75;
+  setVal('vLOAD',v.toFixed(0),'%');
+  bar('bLOAD',v,100,high?'#ff3d3d':ok?'#00d68f':'#ffaa00');
+  el('vLOAD').className='mg-val '+(high?'fault':ok?'ok':'warn');
+  setElClass('nLOAD',high?'mg-note bad':ok?'mg-note ok':'mg-note warn',
+    high?'⚠ ECU at limit — sensor missing':ok?'✓ Normal load':'Elevated');
+}
+function updTrim(key,v){
+  const ok=Math.abs(v)<10,fault=Math.abs(v)>20;
+  const d=(v>=0?'+':'')+v.toFixed(1)+'%';
+  const pct=Math.min(100,Math.max(0,50+(v/25*50)));
+  const col=fault?'#ff3d3d':ok?'#00d68f':'#ffaa00';
+  const clz=fault?'mg-note bad':ok?'mg-note ok':'mg-note warn';
+  const note=fault?'⚠ Heavy ECU correction!':ok?'✓ Normal':'Monitor';
+  if(key==='stft'){
+    setVal('vSTFT',d.replace('%',''),'%');
+    bar('bSTFT',pct,100,col);
+    setElClass('nSTFT',clz,note);
+    setEl('d-stft',d);
+    el('d-stft-bar').style.width=pct+'%';
+    el('d-stft-bar').style.background=col;
+    setEl('s-stft',d);
+  }else{
+    setVal('vLTFT',d.replace('%',''),'%');
+    bar('bLTFT',pct,100,col);
+    setElClass('nLTFT',clz,note);
+    setEl('d-ltft',d);
+    el('d-ltft-bar').style.width=pct+'%';
+    el('d-ltft-bar').style.background=col;
+    setEl('s-ltft',d);
+  }
+  updFuelSys();
+}
+function updFuelSys(){
+  const ok=Math.abs(D.stft)<10&&Math.abs(D.ltft)<10;
+  const card=el('card-fuel'),cv=el('cv-fuel'),sb=el('sb-fuel');
+  if(!ok&&(Math.abs(D.stft)>20||Math.abs(D.ltft)>20)){
+    card.className='card fault';cv.className='card-verdict cv-fault';cv.textContent='FAULT';
+    sb.className='sec-badge sb-fault';sb.textContent='FAULT';
+  }else if(!ok){
+    card.className='card warn';cv.className='card-verdict cv-warn';cv.textContent='MONITOR';
+    sb.className='sec-badge sb-warn';sb.textContent='WATCH';
+  }else{
+    card.className='card ok';cv.className='card-verdict cv-ok';cv.textContent='BALANCED';
+    sb.className='sec-badge sb-ok';sb.textContent='OK';
+  }
+}
+function updBat(v){
+  const ok=v>=13.5&&v<=14.7;
+  setVal('vBAT',v.toFixed(1),'V');
+  bar('bBAT',(v-11)/5,1,ok?'#00d68f':'#ffaa00');
+  setElClass('nBAT',ok?'mg-note ok':'mg-note warn',ok?'✓ Charging':'Check battery');
+  setEl('s-bat',v.toFixed(1));
+  const card=el('card-elec'),cv=el('cv-elec');
+  card.className='card '+(ok?'ok':'warn');
+  cv.className='card-verdict '+(ok?'cv-ok':'cv-warn');
+  cv.textContent=ok?'CHARGING':'CHECK';
+}
+function updGear(spd,rpm){
+  if(rpm<500||spd<2){setEl('t-gear','N');return;}
+  const r=rpm/(spd||1);
+  setEl('t-gear',r<40?'5':r<55?'4':r<75?'3':r<100?'2':'1');
+}
+
+// ═══════════════════════════════════
+// HEALTH SCORE
+// ═══════════════════════════════════
+function computeHealth(){
+  let s=100,chips=[];
+  if(D.maf<.2){s-=25;chips.push({t:'MAF DEAD',c:'fault'});}
+  else if(D.maf<1.5){s-=10;chips.push({t:'MAF LOW',c:'warn'});}
+  else chips.push({t:'MAF OK',c:'ok'});
+  if(D.map<3){s-=15;chips.push({t:'MAP DEAD',c:'fault'});}
+  else if(D.map<25){s-=8;chips.push({t:'MAP LOW',c:'warn'});}
+  if(D.iat<=-38){s-=10;chips.push({t:'IAT FAULT',c:'fault'});}
+  if(D.catalyst>520){s-=15;chips.push({t:'CAT HOT',c:'fault'});}
+  else if(D.catalyst>490){s-=5;chips.push({t:'CAT WARM',c:'warn'});}
+  if(D.coolant>97){s-=20;chips.push({t:'OVERHEAT',c:'fault'});}
+  if(Math.abs(D.stft)>20||Math.abs(D.ltft)>20){s-=15;chips.push({t:'TRIM FAULT',c:'fault'});}
+  s-=FAULTS.length*5;
+  s=Math.max(0,Math.min(100,s));
+  const col=s>70?'var(--green)':s>40?'var(--amber)':'var(--red)';
+  const circ=314,off=circ-(s/100)*circ;
+  el('hrFill').style.strokeDashoffset=off;
+  el('hrFill').style.stroke=col;
+  el('hrGlow').style.strokeDashoffset=off;
+  el('hrGlow').style.stroke=col;
+  el('hrNum').textContent=s;
+  el('hrNum').style.color=col;
+  el('hrWrap').className=s<40?'dash-hero hr-wrap-fault':'dash-hero';
+  const v=s>80?'All systems normal':s>60?'Minor issues detected':s>40?'Attention needed':'Critical fault';
+  const sub=s>80?'No faults — safe to drive.':s>60?'Monitor highlighted sensors.':s>40?'Check fault codes soon.':'Do not ignore — see mechanic.';
+  setEl('heroVerdict',v);setEl('heroSub',sub);
+  el('heroChips').innerHTML=chips.slice(0,4).map(c=>`<div class="chip chip-${c.c}">${c.t}</div>`).join('');
+}
+
+// ═══════════════════════════════════
+// ALERTS
+// ═══════════════════════════════════
+let lastAlertKey='';
+function alert(type,icon,title,sub){
+  const k=title+sub;if(k===lastAlertKey)return;lastAlertKey=k;
+  const s=el('alertStrip');
+  s.className='alert-banner show '+(type==='crit'?'crit':'warn');
+  setEl('alertIcon',icon);setEl('alertTitle',title);setEl('alertSub',sub);
+  log(title+' — '+sub,type==='crit'?'err':'warn');
+  setTimeout(()=>{s.classList.remove('show');lastAlertKey='';},8000);
+}
+function closeAlert(){el('alertStrip').classList.remove('show');lastAlertKey='';}
+
+// ═══════════════════════════════════
+// FAULT SCANNING
+// ═══════════════════════════════════
+const DTC_DB={
+  'P0069':'MAP/BARO Sensor Correlation — exhaust back pressure or sensor fault',
+  'P0100':'MAF Sensor Circuit — loose connector or failed sensor',
+  'P0101':'MAF Sensor Performance — dirty sensor or air leak',
+  'P0107':'MAP Sensor Low Input — vacuum leak or failed sensor',
+  'P0110':'Intake Air Temp Sensor Circuit — check MAF connector',
+  'P0200':'Injector Circuit Malfunction — secondary to ECU confusion',
+  'P0300':'Random Misfire — check spark plugs and fuel system',
+  'P0420':'Catalyst Below Threshold — catalyst blocked or damaged',
+  'C0010':'ESC System Fault — secondary to engine management fault',
+  'C2901':'Chassis Control Fault — secondary fault, clears after engine fix',
+};
+async function scanFaults(){
+  log('Scanning fault codes…','info');
+  FAULTS.length=0;
+  let codes=[];
+  if(simMode){
+    codes=[{code:'P0069',sev:'warn'}];
+  }else{
+    const r=await cmd('03');
+    codes=parseDTCs(r);
+  }
+  codes.forEach(c=>FAULTS.push(c));
+  renderFaults(codes);
+  if(codes.length){
+    log(codes.length+' fault(s): '+codes.map(c=>c.code).join(', '),'err');
+    el('bb-diag').classList.add('on');
+    alert('crit','⚠️','Fault Codes Found',codes.map(c=>c.code).join(' + '));
+  }else{
+    log('No fault codes stored','ok');
+    el('bb-diag').classList.remove('on');
+    el('pt-dtc').textContent='✓ No fault codes';
+    el('pt-dtc').className='pt-status pt-ok';
+  }
+  updateRCA(codes);
+  computeHealth();
+}
+function parseDTCs(raw){
+  if(!raw||/NO DATA/.test(raw)||raw==='0300') return[];
+  const codes=[];
+  (raw.match(/[0-9A-Fa-f]{4}/g)||[]).forEach(hex=>{
+    if(hex==='0000')return;
+    const b=parseInt(hex[0],16);
+    const pre=['P','C','B','U'][b>>2]||'P';
+    codes.push({code:pre+(b&3)+hex.slice(1).toUpperCase(),sev:pre==='P'?'fault':'warn'});
+  });
+  return codes;
+}
+function renderFaults(codes){
+  const list=el('dtcList');
+  if(!codes.length){
+    list.innerHTML='<div style="text-align:center;padding:16px;color:var(--green);font-size:12px">✅ No fault codes</div>';
+    return;
+  }
+  list.innerHTML=codes.map(c=>`
+    <div class="dtc-item ${c.sev}">
+      <div class="dtc-code">${c.code}</div>
+      <div><div class="dtc-name">${DTC_DB[c.code]?.split('—')[0]||'Unknown fault'}</div>
+      <div class="dtc-cause">${DTC_DB[c.code]?.split('—')[1]||'Check workshop manual'}</div></div>
+    </div>`).join('');
+}
+function updateRCA(codes){
+  const f=codes.map(c=>c.code);
+  let html='';
+  if(D.maf<.2||f.includes('P0100')||f.includes('P0101'))
+    html+=rca('🔴','MAF Sensor Dead / No Signal','0 g/s + IAT at -40°C = MAF unit completely offline. Both share same connector on 1.0L SCe.','Re-seat blue connector in engine bay. Check for bent/corroded pins. Replace if still dead.','95%');
+  if(D.map<3||f.includes('P0069')||f.includes('P0107'))
+    html+=rca('🟡','MAP Sensor / Exhaust Blockage','MAP reading 0 kPa while baro = 102 kPa triggers P0069. Indicates exhaust restriction causing back pressure.','Check catalyst for carbon blockage. Tap catalyst body — rattle = broken substrate.','70%');
+  if(f.includes('P0200'))
+    html+=rca('🟠','Injector Circuit (Secondary)','P0200 appeared after extended limp-mode driving. ECU running blind on fallback map overloaded injector circuit.','Clear after MAF repair. If returns, check injector wiring harness.','60%');
+  if(f.some(c=>c.startsWith('C')))
+    html+=rca('🔵','ESC / Chassis Fault (Secondary)','Chassis codes triggered because ESC lost engine torque reference when MAF failed. Not an independent fault.','Will auto-clear once engine management faults are fixed.','99%');
+  if(!html) html='<div style="font-size:11px;color:var(--green)">✅ No active faults — all systems analysed normal.</div>';
+  el('rcaText').innerHTML=html;
+}
+function rca(icon,title,desc,action,conf){
+  return`<div style="padding:8px 0;border-bottom:1px solid var(--rim);margin-bottom:4px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+      <span style="font-size:14px">${icon}</span>
+      <span style="font-size:11px;font-weight:700;color:var(--white)">${title}</span>
+      <span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--green)">${conf}</span>
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:3px;line-height:1.4">${desc}</div>
+    <div style="font-size:10px;color:var(--cyan)">→ ${action}</div>
+  </div>`;
+}
+async function clearFaults(){
+  if(!confirm('Clear all stored fault codes?\nDo this AFTER repair is complete.'))return;
+  log('Clearing fault codes…','warn');
+  if(!simMode)await cmd('04');
+  await sleep(500);
+  FAULTS.length=0;renderFaults([]);
+  el('bb-diag').classList.remove('on');
+  log('Codes cleared','ok');
+  await sleep(800);await scanFaults();
+}
+
+// ═══════════════════════════════════
+// PRE-TRIP CHECK
+// ═══════════════════════════════════
+function updPretrip(){
+  const set=(id,ok,warn,msg)=>{
+    el(id).textContent=msg;
+    el(id).className='pt-status '+(ok?'pt-ok':warn?'pt-warn':'pt-bad');
+  };
+  — check connector':'⚠ Dead — needs repair');
+  set('pt-cool',D.coolant>=80&&D.coolant<=97,D.coolant<80,D.coolant>=80&&D.coolant<=97?'✓ '+D.coolant.toFixed(0)+'°C':D.coolant<80?'Warming up…':'⚠ Overheating!');
+  set('pt-cat',D.catalyst<490,D.catalyst<520,D.catalyst<490?'✓ '+D.catalyst.toFixed(0)+'°C':D.catalyst<520?'⚡ Warm — monitor':'⚠ Too hot!');
+  set('pt-trim',Math.abs(D.ltft)<10,Math.abs(D.ltft)<20,Math.abs(D.ltft)<10?'✓ Balanced':'⚡ LTFT '+D.ltft.toFixed(1)+'%');
+  set('pt-bat',D.battery>=13.5,D.battery>12,D.battery>=13.5?'✓ '+D.battery.toFixed(1)+'V':'⚡ '+D.battery.toFixed(1)+'V low');
+}
+async function runPretrip(){
+  log('Running pre-trip check…','info');
+  updPretrip();
+  await scanFaults();
+  log('Pre-trip complete','ok');
+}
+</script>
+</body>
+</html>
